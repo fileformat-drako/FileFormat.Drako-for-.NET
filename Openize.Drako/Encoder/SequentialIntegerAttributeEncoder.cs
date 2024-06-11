@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Openize.Draco.Compression;
 using Openize.Draco.Utils;
@@ -75,7 +76,7 @@ namespace Openize.Draco.Encoder
                 // (determined by the encoding order).
                 PointAttribute orig_att = Attribute;
                 PointAttribute portable_att = portableAttribute;
-                IntArray value_to_value_map = IntArray.Array(orig_att.NumUniqueEntries);
+                var value_to_value_map = new int[orig_att.NumUniqueEntries];
                 for (int i = 0; i < point_ids.Length; ++i)
                 {
                     value_to_value_map[orig_att.MappedIndex(point_ids[i])] =
@@ -121,13 +122,13 @@ namespace Openize.Draco.Encoder
 
             int num_components = portableAttribute.ComponentsCount;
             int num_values = num_components * portableAttribute.NumUniqueEntries;
-            IntArray portable_attribute_data = GetPortableAttributeData();
+            var portable_attribute_data = GetPortableAttributeData();
 
             // We need to keep the portable data intact, but several encoding steps can
             // result in changes of this data, e.g., by applying prediction schemes that
             // change the data in place. To preserve the portable data we store and
             // process all encoded data in a separate array.
-            IntArray encoded_data = IntArray.Array(num_values);
+            Span<int> encoded_data = new int[num_values];
 
             // All integer values are initialized. Process them using the prediction
             // scheme if we have one.
@@ -141,7 +142,7 @@ namespace Openize.Draco.Encoder
             if (predictionScheme == null ||
                 !predictionScheme.AreCorrectionsPositive())
             {
-                IntArray input =
+                var input =
                     predictionScheme != null ? encoded_data : portable_attribute_data;
                 Encoding.ConvertSignedIntsToSymbols(input, num_values, encoded_data);
             }
@@ -208,12 +209,12 @@ namespace Openize.Draco.Encoder
             return true;
         }
 
-        private IntArray GetPortableAttributeData()
+        private Span<int> GetPortableAttributeData()
         {
             int num_components = portableAttribute.ComponentsCount;
             int num_values = num_components * portableAttribute.NumUniqueEntries;
-            IntArray array = IntArray.Wrap(portableAttribute.Buffer.GetBuffer(), portableAttribute.ByteOffset, num_values * 4) ;
-            return array;
+            var buf = portableAttribute.Buffer.GetBuffer();
+            return MemoryMarshal.Cast<byte, int>(buf.AsSpan(portableAttribute.ByteOffset, num_values * 4));
         }
 
         /// <summary>

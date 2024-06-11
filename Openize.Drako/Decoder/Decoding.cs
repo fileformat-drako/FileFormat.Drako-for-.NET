@@ -10,7 +10,7 @@ namespace Openize.Draco.Decoder
     {
 
         internal static bool DecodeSymbols(int numValues, int numComponents,
-            DecoderBuffer srcBuffer, IntArray outValues)
+            DecoderBuffer srcBuffer, Span<int> outValues)
         {
             if (numValues < 0)
                 return DracoUtils.Failed();
@@ -34,7 +34,7 @@ namespace Openize.Draco.Decoder
         }
 
         static bool DecodeTaggedSymbols(int numValues, int numComponents,
-            DecoderBuffer srcBuffer, IntArray outValues)
+            DecoderBuffer srcBuffer, Span<int> outValues)
         {
             // Decode the encoded data.
             RAnsSymbolDecoder tagDecoder = new RAnsSymbolDecoder(5);
@@ -71,7 +71,7 @@ namespace Openize.Draco.Decoder
         }
 
         static bool DecodeRawSymbols(int numValues, DecoderBuffer srcBuffer,
-            IntArray outValues)
+            Span<int> outValues)
         {
             byte maxBitLength;
             if (!srcBuffer.Decode(out maxBitLength))
@@ -96,7 +96,7 @@ namespace Openize.Draco.Decoder
             return true;
         }
 
-        public static void ConvertSymbolsToSignedInts(IntArray symbols, IntArray result)
+        public static void ConvertSymbolsToSignedInts(Span<int> symbols, Span<int> result)
         {
             for (int i = 0; i < symbols.Length; ++i)
             {

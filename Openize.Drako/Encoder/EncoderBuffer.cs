@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Openize.Draco.Utils;
 
@@ -72,7 +73,7 @@ namespace Openize.Draco.Encoder
                 offset += 4;
             }
         }
-        public void Encode(IntArray val)
+        public void Encode(Span<int> val)
         {
             int offset = buffer.Length;
             DebugBreak(4 * val.Length);
@@ -232,16 +233,14 @@ namespace Openize.Draco.Encoder
 
         public bool BitEncoderActive { get { return bitEncoderReservedBytes > 0; }}
 
-        internal void Encode(IntArray ints, int bytesOffset, int bytes)
+        internal void Encode(Span<int> ints, int bytesOffset, int bytes)
         {
             int offset = this.buffer.Length;
             this.buffer.Length += bytes;
-            //Array.Copy(buffer, start, this.buffer.GetBuffer(), offset, length);
-            Buffer.BlockCopy(ints.data, ints.ByteOffset * 4, this.buffer.GetBuffer(), offset, bytes);
-
-            //Encode(ints.GetBuffer(), ints.ByteOffset + bytesOffset, bytes);
+            //Buffer.BlockCopy(ints.data, ints.ByteOffset * 4, this.buffer.GetBuffer(), offset, bytes);
+            MemoryMarshal.Cast<int, byte>(ints).CopyTo(buffer.GetBuffer().AsSpan(offset, bytes));
         }
-        internal void Encode(IntArray ints, int bytes)
+        internal void Encode(Span<int> ints, int bytes)
         {
             Encode(ints, 0, bytes);
         }

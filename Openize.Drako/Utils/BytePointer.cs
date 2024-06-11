@@ -7,7 +7,7 @@ namespace Openize.Draco.Utils
 {
     /// <summary>
     /// This simulates a byte pointer used in Draco implementation, also makes it easier to be ported to Java using CsPorter made by Lex Chou. 
-    /// I've benchmarked this, it's okay to be used.
+    /// I've benchmarked this, it's okay to be used, I'll replace this by Span later.
     /// .NET Version: 8.0
     /// Build Type: Release
     /// Test memory block: 1GB

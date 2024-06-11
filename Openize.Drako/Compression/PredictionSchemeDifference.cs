@@ -25,7 +25,7 @@ namespace Openize.Draco.Compression
         public override PredictionSchemeMethod PredictionMethod { get {return PredictionSchemeMethod.Difference;} }
         public override bool Initialized { get { return true; } }
 
-        public override bool ComputeCorrectionValues(IntArray inData, IntArray outCorr, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
         {
 
             transform_.InitializeEncoding(inData, numComponents);
@@ -36,16 +36,16 @@ namespace Openize.Draco.Compression
                     inData,  i, inData,  i - numComponents, outCorr, 0, i);
             }
             // Encode correction for the first element.
-            IntArray zeroVals = IntArray.Array(numComponents);
+            Span<int> zeroVals = stackalloc int[numComponents];
             transform_.ComputeCorrection(inData, zeroVals, outCorr, 0);
             return true;
         }
 
-        public override bool ComputeOriginalValues(IntArray inCorr, IntArray outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             transform_.InitializeDecoding(numComponents);
             // Decode the original value for the first element.
-            IntArray zeroVals = IntArray.Array(numComponents);
+            Span<int> zeroVals = stackalloc int[numComponents];
             transform_.ComputeOriginalValue(zeroVals, inCorr, outData);
 
             // Decode data from the front using D(i) = D(i) + D(i - 1).

@@ -14,7 +14,7 @@ namespace Openize.Draco.Encoder
         private const int Tagged = 0;
         private const int Raw = 1;
 
-        public static void ConvertSignedIntsToSymbols(IntArray input, int num, IntArray output)
+        public static void ConvertSignedIntsToSymbols(Span<int> input, int num, Span<int> output)
         {
             // Convert the quantized values into a format more suitable for entropy
             // encoding.
@@ -37,12 +37,11 @@ namespace Openize.Draco.Encoder
         /// are processed in "numComponents" sized chunks and the bit length is always
         /// computed for the largest value from the chunk.
         /// </summary>
-        public static void ComputeBitLengths(IntArray symbols,
+        public static int[] ComputeBitLengths(Span<int> symbols,
             int numComponents,
-            out IntArray outBitLengths,
             out int outMaxValue)
         {
-            outBitLengths = IntArray.Array(symbols.Length / numComponents);
+            var outBitLengths = new int[symbols.Length / numComponents];
             int p = 0;
             outMaxValue = 0;
             // Maximum integer value across all components.
@@ -66,9 +65,10 @@ namespace Openize.Draco.Encoder
                 }
                 outBitLengths[p++] = valueMsbPos + 1;
             }
+            return outBitLengths;
         }
 
-        static long ComputeShannonEntropy(IntArray symbols, int num_symbols,
+        static long ComputeShannonEntropy(Span<int> symbols, int num_symbols,
             int max_value, out int out_num_unique_symbols)
         {
             // First find frequency of all unique symbols in the input array.
@@ -110,7 +110,7 @@ namespace Openize.Draco.Encoder
             return 8 * num_unique_symbols + table_zero_frequency_bits;
         }
 
-        static long ApproximateTaggedSchemeBits(IntArray bit_lengths, int num_components)
+        static long ApproximateTaggedSchemeBits(Span<int> bit_lengths, int num_components)
         {
             // Compute the total bit length used by all values (the length of data encode
             // after tags).
@@ -127,7 +127,7 @@ namespace Openize.Draco.Encoder
             return tag_bits + tag_table_bits + (long)total_bit_length * num_components;
         }
 
-        static long ApproximateRawSchemeBits(IntArray symbols,
+        static long ApproximateRawSchemeBits(Span<int> symbols,
             int num_symbols, uint max_value,
             out int out_num_unique_symbols)
         {
@@ -139,16 +139,15 @@ namespace Openize.Draco.Encoder
             return table_bits + data_bits;
         }
 
-        public static bool EncodeSymbols(IntArray symbols, int numValues, int numComponents, DracoEncodeOptions options,
+        public static bool EncodeSymbols(Span<int> symbols, int numValues, int numComponents, DracoEncodeOptions options,
             EncoderBuffer targetBuffer)
         {
             if (symbols.Length == 0)
                 return true;
             if (numComponents == 0)
                 numComponents = 1;
-            IntArray bitLengths;
             int maxValue;
-            ComputeBitLengths(symbols, numComponents, out bitLengths, out maxValue);
+            int[] bitLengths = ComputeBitLengths(symbols, numComponents, out maxValue);
 
             // Approximate number of bits needed for storing the symbols using the tagged
             // scheme.
@@ -202,7 +201,7 @@ namespace Openize.Draco.Encoder
             return false;
         }
 
-        static bool EncodeTaggedSymbols(IntArray symbols, int numComponents, IntArray bitLengths,
+        static bool EncodeTaggedSymbols(Span<int> symbols, int numComponents, Span<int> bitLengths,
             EncoderBuffer targetBuffer)
         {
             // Create entries for entropy coding. Each entry corresponds to a different
@@ -257,7 +256,7 @@ namespace Openize.Draco.Encoder
             return true;
         }
 
-        static bool EncodeRawSymbols(IntArray symbols, int num_values,
+        static bool EncodeRawSymbols(Span<int> symbols, int num_values,
             uint max_entry_value, int num_unique_symbols,
             DracoEncodeOptions options, EncoderBuffer target_buffer)
         {
@@ -308,7 +307,7 @@ namespace Openize.Draco.Encoder
                 target_buffer);
         }
 
-        static bool EncodeRawSymbolsInternal(int unique_symbols_bit_length, IntArray symbols, int num_values, uint max_entry_value, EncoderBuffer target_buffer)
+        static bool EncodeRawSymbolsInternal(int unique_symbols_bit_length, Span<int> symbols, int num_values, uint max_entry_value, EncoderBuffer target_buffer)
         {
             // Count the frequency of each entry value.
             ulong[] frequencies = new ulong[max_entry_value + 1];
@@ -343,7 +342,7 @@ namespace Openize.Draco.Encoder
             return true;
         }
 
-        static bool EncodeRawSymbols(IntArray symbols, int maxValue, EncoderBuffer targetBuffer)
+        static bool EncodeRawSymbols(Span<int> symbols, int maxValue, EncoderBuffer targetBuffer)
         {
             int maxEntryValue = maxValue;
             // If the maxValue is not provided, find it.

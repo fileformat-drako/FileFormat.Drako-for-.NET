@@ -125,7 +125,7 @@ namespace Openize.Draco.Decoder
         {
 
             // Get decoded indices differences that were encoded with an entropy code.
-            IntArray indicesBuffer = IntArray.Array(numFaces * 3);
+            Span<int> indicesBuffer = stackalloc int[numFaces * 3];
             if (!Decoding.DecodeSymbols(numFaces * 3, 1, Buffer, indicesBuffer))
                 return DracoUtils.Failed();
             // Reconstruct the indices from the differences.

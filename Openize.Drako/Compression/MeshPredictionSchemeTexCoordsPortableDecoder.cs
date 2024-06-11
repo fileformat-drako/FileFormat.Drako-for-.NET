@@ -17,7 +17,7 @@ namespace Openize.Draco.Compression
             predictor_ = new MeshPredictionSchemeTexCoordsPortablePredictor(meshData);
         }
 
-        public override bool ComputeCorrectionValues(IntArray in_data, IntArray out_corr, int size, int num_components,
+        public override bool ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components,
             int[] entry_to_point_id_map)
         {
             predictor_.entry_to_point_id_map_ = entry_to_point_id_map;
@@ -71,7 +71,7 @@ namespace Openize.Draco.Compression
             return true;
         }
 
-        public override bool ComputeOriginalValues(IntArray inCorr, IntArray outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             predictor_.entry_to_point_id_map_ = entryToPointIdMap;
             this.transform_.InitializeDecoding(numComponents);

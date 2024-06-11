@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Openize.Draco.Compression;
 using Openize.Draco.Utils;
@@ -104,7 +105,7 @@ namespace Openize.Draco.Decoder
             return attribute.ComponentsCount;
         }
 
-        private IntArray GetValues(int numEntries)
+        private Span<int> GetValues(int numEntries)
         {
             int numComponents = GetNumValueComponents();
             int numValues = numEntries * numComponents;
@@ -113,7 +114,8 @@ namespace Openize.Draco.Decoder
             PreparePortableAttribute(numEntries, numComponents);
             if (PortableAttribute.NumUniqueEntries == 0)
                 return null;
-            return IntArray.Wrap(PortableAttribute.Buffer.GetBuffer(), 0, numValues * 4);
+            var buf = PortableAttribute.Buffer.GetBuffer();
+            return MemoryMarshal.Cast<byte, int>(buf.AsSpan(0, numValues * 4));
         }
 
         public virtual bool DecodeIntegerValues(int[] pointIds, DecoderBuffer inBuffer)
@@ -123,7 +125,7 @@ namespace Openize.Draco.Decoder
             int numValues = numEntries * numComponents;
             if (numComponents <= 0)
                 return DracoUtils.Failed();
-            IntArray values = GetValues(numEntries);
+            Span<int> values = GetValues(numEntries);
             if(values == null)
                 return DracoUtils.Failed();
             byte compressed;
@@ -215,7 +217,7 @@ namespace Openize.Draco.Decoder
         private void Store8BitsValues(int numValues)
         {
             int vals = Attribute.ComponentsCount * numValues;
-            IntArray values = GetValues(numValues);
+            var values = GetValues(numValues);
             int outBytePos = 0;
             for (int i = 0; i < vals; ++i)
             {
@@ -227,7 +229,7 @@ namespace Openize.Draco.Decoder
         private void Store16BitsValues(int numValues)
         {
             int vals = Attribute.ComponentsCount * numValues;
-            IntArray values = GetValues(numValues);
+            var values = GetValues(numValues);
             int outBytePos = 0;
             for (int i = 0; i < vals; ++i)
             {
@@ -239,7 +241,7 @@ namespace Openize.Draco.Decoder
         private void Store32BitsValues(int numValues)
         {
             int vals = Attribute.ComponentsCount * numValues;
-            IntArray values = GetValues(numValues);
+            var values = GetValues(numValues);
             int outBytePos = 0;
             for (int i = 0; i < vals; ++i)
             {

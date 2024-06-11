@@ -17,18 +17,18 @@ namespace Openize.Draco.Decoder
         {
 
         }
-        public override bool ComputeCorrectionValues(IntArray in_data, IntArray out_corr, int size, int num_components, int[] entry_to_point_id_map)
+        public override bool ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components, int[] entry_to_point_id_map)
         {
             throw new NotImplementedException();
         }
 
-        public override bool ComputeOriginalValues(IntArray in_corr, IntArray out_data, int size, int num_components,
+        public override bool ComputeOriginalValues(Span<int> in_corr, Span<int> out_data, int size, int num_components,
             int[] entry_to_point_id_map)
         {
 
             this.transform_.InitializeDecoding(num_components);
             // Decode the original value for the first element.
-            IntArray zero_vals = IntArray.Array(num_components);
+            Span<int> zero_vals = stackalloc int[num_components];
             this.transform_.ComputeOriginalValue(zero_vals, in_corr, out_data);
 
             // Decode data from the front using D(i) = D(i) + D(i - 1).

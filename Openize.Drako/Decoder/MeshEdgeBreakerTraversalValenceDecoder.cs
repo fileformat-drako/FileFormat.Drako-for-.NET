@@ -21,7 +21,7 @@ namespace Openize.Draco.Decoder
         int minValence = 2;
         int maxValence = 7;
 
-        private IntArray[] contextSymbols;
+        private int[][] contextSymbols;
         // Points to the active symbol in each context.
         private int[] contextCounters;
 
@@ -97,7 +97,7 @@ namespace Openize.Draco.Decoder
             int numUniqueValences = maxValence - minValence + 1;
 
             // Decode all symbols for all contexts.
-            contextSymbols = new IntArray[numUniqueValences];
+            contextSymbols = new int[numUniqueValences][];
             contextCounters = new int[contextSymbols.Length];
             for (int i = 0; i < contextSymbols.Length; ++i)
             {
@@ -106,7 +106,7 @@ namespace Openize.Draco.Decoder
                 if (numSymbols > 0)
                 {
 
-                    contextSymbols[i] = IntArray.Array((int)numSymbols);
+                    contextSymbols[i] = new int[(int)numSymbols];
                     Decoding.DecodeSymbols((int)numSymbols, 1, outBuffer, contextSymbols[i]);
                     // All symbols are going to be processed from the back.
                     contextCounters[i] = (int)numSymbols;

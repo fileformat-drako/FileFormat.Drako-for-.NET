@@ -32,7 +32,7 @@ namespace Openize.Draco.Compression
         private int maxDif;
         private int maxCorrection;
         private int minCorrection;
-        private IntArray clampedValue = null;
+        private int[] clampedValue = null;
 
         protected void InitCorrectionBounds()
         {
@@ -49,7 +49,7 @@ namespace Openize.Draco.Compression
             get { return PredictionSchemeTransformType.Wrap; }
         }
 
-        public override void InitializeEncoding(IntArray origData, int numComponents)
+        public override void InitializeEncoding(Span<int> origData, int numComponents)
         {
             base.InitializeEncoding(origData, numComponents);
             // Go over the original values and compute the bounds.
@@ -64,14 +64,13 @@ namespace Openize.Draco.Compression
                     maxValue = origData[i];
             }
             InitCorrectionBounds();
-            clampedValue = IntArray.Resize(clampedValue, numComponents);
+            Array.Resize(ref clampedValue, numComponents);
         }
 
         public override void InitializeDecoding(int numComponents)
         {
             base.InitializeDecoding(numComponents);
-            clampedValue = clampedValue = IntArray.Resize(clampedValue, numComponents);
-            
+            Array.Resize(ref clampedValue, numComponents);
         }
 
         /// <summary>
@@ -79,9 +78,9 @@ namespace Openize.Draco.Compression
         /// predicted value. Out of bound correction values are wrapped around the max
         /// range of input values.
         /// </summary>
-        public override void ComputeCorrection(IntArray originalVals, int originalOffset,
-            IntArray predictedVals, int predictedOffset,
-            IntArray outCorrVals, int outOffset, int valId)
+        public override void ComputeCorrection(Span<int> originalVals, int originalOffset,
+            Span<int> predictedVals, int predictedOffset,
+            Span<int> outCorrVals, int outOffset, int valId)
         {
             base.ComputeCorrection(originalVals, originalOffset, ClampPredictedValue(predictedVals, predictedOffset), 0,
                 outCorrVals,
@@ -120,11 +119,11 @@ namespace Openize.Draco.Compression
         /// Computes the original value from the input predicted value and the decoded
         /// corrections. Values out of the bounds of the input values are unwrapped.
         /// </summary>
-        public override void ComputeOriginalValue(IntArray predictedVals,
+        public override void ComputeOriginalValue(Span<int> predictedVals,
             int predictedOffset,
-            IntArray corrVals,
+            Span<int> corrVals,
             int corrOffset,
-            IntArray outOriginalVals, int outOffset)
+            Span<int> outOriginalVals, int outOffset)
         {
             //base.ComputeOriginalValue(ClampPredictedValue(predictedVals, predictedOffset), 0, corrVals, corrOffset, outOriginalVals, outOffset, valId);
             predictedVals = ClampPredictedValue(predictedVals, predictedOffset);
@@ -139,7 +138,7 @@ namespace Openize.Draco.Compression
             }
         }
 
-        IntArray ClampPredictedValue(IntArray predictedVal, int offset)
+        Span<int> ClampPredictedValue(Span<int> predictedVal, int offset)
         {
             for (int i = 0; i < numComponents; ++i)
             {

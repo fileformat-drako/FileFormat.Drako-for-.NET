@@ -13,7 +13,7 @@ namespace Openize.Draco.Compression
     {
         private PointAttribute posAttribute;
         private int[] entryToPointIdMap;
-        private IntArray predictedValue;
+        private int[] predictedValue;
         private int numComponents;
         /// <summary>
         /// Encoded / decoded array of UV flips.
@@ -42,11 +42,11 @@ namespace Openize.Draco.Compression
             return true;
         }
 
-        public override bool ComputeCorrectionValues(IntArray inData, IntArray outCorr, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
         {
             this.numComponents = numComponents;
             this.entryToPointIdMap = entryToPointIdMap;
-            predictedValue = IntArray.Array(numComponents);
+            predictedValue = new int[numComponents];
             this.transform_.InitializeEncoding(inData, numComponents);
             // We start processing from the end because this prediction uses data from
             // previous entries that could be overwritten when an entry is processed.
@@ -61,11 +61,11 @@ namespace Openize.Draco.Compression
             return true;
         }
 
-        public override bool ComputeOriginalValues(IntArray inCorr, IntArray outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             this.numComponents = numComponents;
             this.entryToPointIdMap = entryToPointIdMap;
-            predictedValue = IntArray.Array(numComponents);
+            predictedValue = new int[numComponents];
             this.transform_.InitializeDecoding(numComponents);
 
             int cornerMapSize = this.meshData.dataToCornerMap.Count;
@@ -127,13 +127,13 @@ namespace Openize.Draco.Compression
             return pos;
         }
 
-        private Vector2 GetTexCoordForEntryId(int entryId, IntArray data)
+        private Vector2 GetTexCoordForEntryId(int entryId, Span<int> data)
         {
             int dataOffset = entryId * numComponents;
             return new Vector2(data[dataOffset], data[dataOffset + 1]);
         }
 
-        private void ComputePredictedValue(bool isEncoder, int cornerId, IntArray data,
+        private void ComputePredictedValue(bool isEncoder, int cornerId, Span<int> data,
             int dataId)
         {
             // Compute the predicted UV coordinate from the positions on all corners

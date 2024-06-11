@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Openize.Draco.Utils;
 
@@ -79,7 +80,8 @@ namespace Openize.Draco.Decoder
             int quantValId = 0;
             int outBytePos = 0;
             Dequantizer dequantizer = new Dequantizer(maxValueDif, maxQuantizedValue);
-            IntArray values = IntArray.Wrap(PortableAttribute.Buffer.GetBuffer(), 0, numValues * numComponents);
+            //IntArray values = IntArray.Wrap(PortableAttribute.Buffer.GetBuffer(), 0, numValues * numComponents);
+            var values = MemoryMarshal.Cast<byte, int>(PortableAttribute.Buffer.GetBuffer().AsSpan(0, numValues * numComponents * 4));
             for (uint i = 0; i < numValues; ++i)
             {
                 for (int c = 0; c < numComponents; ++c)

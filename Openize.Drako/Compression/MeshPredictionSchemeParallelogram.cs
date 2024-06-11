@@ -33,10 +33,10 @@ namespace Openize.Draco.Compression
         }
         public override PredictionSchemeMethod PredictionMethod { get {return PredictionSchemeMethod.Parallelogram;} }
 
-        public override bool ComputeCorrectionValues(IntArray inData, IntArray outCorr, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
         {
             transform_.InitializeEncoding(inData, numComponents);
-            var predVals = IntArray.Array(numComponents);
+            Span<int> predVals = stackalloc int[numComponents];
 
             // We start processing from the end because this prediction uses data from
             // previous entries that could be overwritten when an entry is processed.
@@ -109,14 +109,14 @@ namespace Openize.Draco.Compression
             return true;
         }
 
-        public override bool ComputeOriginalValues(IntArray inCorr, IntArray outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             transform_.InitializeDecoding(numComponents);
 
             ICornerTable table = this.meshData.CornerTable;
             var vertexToDataMap = this.meshData.vertexToDataMap;
 
-            IntArray predVals = IntArray.Array(numComponents);
+            Span<int> predVals = stackalloc int[numComponents];
 
             // Restore the first value.
             this.transform_.ComputeOriginalValue(predVals, inCorr, outData);
@@ -153,8 +153,8 @@ namespace Openize.Draco.Compression
 // not all entry points were available.
         public static bool ComputeParallelogramPrediction(
             int data_entry_id, int ci, ICornerTable table,
-            int[] vertex_to_data_map, IntArray in_data,
-            int num_components, IntArray out_prediction)
+            int[] vertex_to_data_map, Span<int> in_data,
+            int num_components, Span<int> out_prediction)
         {
             int oci = table.Opposite(ci);
             if (oci == CornerTable.kInvalidCornerIndex)

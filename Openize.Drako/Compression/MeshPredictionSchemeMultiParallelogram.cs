@@ -18,13 +18,13 @@ namespace Openize.Draco.Compression
 
         public override PredictionSchemeMethod PredictionMethod { get { return PredictionSchemeMethod.MultiParallelogram;} }
 
-        public override bool ComputeCorrectionValues(IntArray inData, IntArray outCorr, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
         {
             this.transform_.InitializeEncoding(inData, numComponents);
             ICornerTable table = this.meshData.CornerTable;
             var vertexToDataMap = this.meshData.vertexToDataMap;
 
-            var predVals = IntArray.Array(numComponents);
+            Span<int> predVals = stackalloc int[numComponents];
 
             // We start processing from the end because this prediction uses data from
             // previous entries that could be overwritten when an entry is processed.
@@ -102,12 +102,12 @@ namespace Openize.Draco.Compression
             return true;
         }
 
-        public override bool ComputeOriginalValues(IntArray inCorr, IntArray outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             transform_.InitializeDecoding(numComponents);
 
-            var predVals = IntArray.Array(numComponents);
-            var parallelogramPredVals = IntArray.Array(numComponents);
+            Span<int> predVals = stackalloc int[numComponents];
+            Span<int> parallelogramPredVals = stackalloc int[numComponents];
 
             this.transform_.ComputeOriginalValue(predVals, inCorr, outData);
 

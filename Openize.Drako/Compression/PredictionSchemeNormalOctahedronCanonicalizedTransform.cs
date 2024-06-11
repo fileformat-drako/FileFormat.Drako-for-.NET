@@ -150,8 +150,8 @@ namespace Openize.Draco.Compression
             return true;
         }
 
-        public override void ComputeOriginalValue(IntArray predictedVals, int predictedOffset, IntArray corrVals,
-            int corrOffset, IntArray outOriginalVals, int outOffset)
+        public override void ComputeOriginalValue(Span<int> predictedVals, int predictedOffset, Span<int> corrVals,
+            int corrOffset, Span<int> outOriginalVals, int outOffset)
         {
             var pred = new IntVector(predictedVals[predictedOffset + 0], predictedVals[predictedOffset + 1]);
             IntVector corr = new IntVector(corrVals[corrOffset + 0], corrVals[corrOffset + 1]);
@@ -204,8 +204,8 @@ namespace Openize.Draco.Compression
             buffer.Encode(this.octahedronToolBox.CenterValue);
             return true;
         }
-        public override void ComputeCorrection(IntArray originalVals, int originalOffset, IntArray predictedVals,
-            int predictedOffset, IntArray outCorrVals, int outOffset, int valId)
+        public override void ComputeCorrection(Span<int> originalVals, int originalOffset, Span<int> predictedVals,
+            int predictedOffset, Span<int> outCorrVals, int outOffset, int valId)
         {
 
             var orig = new IntVector(originalVals[0] - CenterValue, originalVals[1] - CenterValue);

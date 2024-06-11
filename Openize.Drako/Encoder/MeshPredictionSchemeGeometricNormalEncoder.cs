@@ -11,7 +11,7 @@ namespace Openize.Draco.Compression
     partial class MeshPredictionSchemeGeometricNormal
     {
         private RAnsBitEncoder flip_normal_bit_encoder_ = new RAnsBitEncoder();
-        public override bool ComputeCorrectionValues(IntArray in_data, IntArray out_corr, int size, int num_components,
+        public override bool ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components,
             int[] entry_to_point_id_map)
         {
 
@@ -23,10 +23,10 @@ namespace Openize.Draco.Compression
             int corner_map_size = this.meshData.dataToCornerMap.Count;
 
             var pred_normal_3d = new int[3];
-            var pos_pred_normal_oct = IntArray.Array(2);
-            var neg_pred_normal_oct = IntArray.Array(2);
-            var pos_correction = IntArray.Array(2);
-            var neg_correction = IntArray.Array(2);
+            Span<int> pos_pred_normal_oct = stackalloc int[2];
+            Span<int> neg_pred_normal_oct = stackalloc int[2];
+            Span<int> pos_correction = stackalloc int[2];
+            Span<int> neg_correction = stackalloc int[2];
             for (int data_id = 0; data_id < corner_map_size; ++data_id)
             {
                 int corner_id =
@@ -52,10 +52,10 @@ namespace Openize.Draco.Compression
                 // Choose the one with the best correction value.
                  int data_offset = data_id * 2;
 
-                this.transform_.ComputeCorrection(in_data + data_offset,
+                this.transform_.ComputeCorrection(in_data.Slice(data_offset),
                     pos_pred_normal_oct,
                     pos_correction, 0);
-                this.transform_.ComputeCorrection(in_data + data_offset,
+                this.transform_.ComputeCorrection(in_data.Slice(data_offset),
                     neg_pred_normal_oct,
                     neg_correction, 0);
                 pos_correction[0] = octahedron_tool_box_.ModMax(pos_correction[0]);

@@ -51,7 +51,7 @@ namespace Openize.Draco.Compression
             }
         }
 
-        public override bool ComputeOriginalValues(IntArray inCorr, IntArray outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             octahedron_tool_box_.SetQuantizationBits(((PredictionSchemeNormalOctahedronTransformBase) transform_).QuantizationBits);
             predictor_.entry_to_point_id_map_ = entryToPointIdMap;
@@ -61,7 +61,7 @@ namespace Openize.Draco.Compression
             int corner_map_size = this.meshData.dataToCornerMap.Count;
 
             int[] pred_normal_3d = new int[3];
-            IntArray pred_normal_oct = IntArray.Array(2);
+            Span<int> pred_normal_oct = stackalloc int[2];
 
             for (int data_id = 0; data_id < corner_map_size; ++data_id)
             {

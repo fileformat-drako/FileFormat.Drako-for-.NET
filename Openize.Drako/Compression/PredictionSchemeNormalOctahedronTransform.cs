@@ -108,7 +108,7 @@ namespace Openize.Draco.Compression
             return true;
         }
 
-        public override void ComputeCorrection(IntArray originalVals, int originalOffset, IntArray predictedVals, int predictedOffset, IntArray outCorrVals, int outOffset, int valId)
+        public override void ComputeCorrection(Span<int> originalVals, int originalOffset, Span<int> predictedVals, int predictedOffset, Span<int> outCorrVals, int outOffset, int valId)
         {
 
             var orig = new IntVector(originalVals[originalOffset], originalVals[originalOffset + 1]);
@@ -119,8 +119,8 @@ namespace Openize.Draco.Compression
             outCorrVals[outOffset + valId + 1] = corr.y;
         }
 
-        public override void ComputeOriginalValue(IntArray predictedVals, int predictedOffset, IntArray corrVals,
-            int corrOffset, IntArray outOriginalVals,
+        public override void ComputeOriginalValue(Span<int> predictedVals, int predictedOffset, Span<int> corrVals,
+            int corrOffset, Span<int> outOriginalVals,
             int outOffset)
         {
             var pred = new IntVector(predictedVals[predictedOffset + 0], predictedVals[predictedOffset + 1]);

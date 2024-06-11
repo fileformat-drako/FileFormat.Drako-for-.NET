@@ -32,7 +32,7 @@ namespace Openize.Draco.Compression
         /// |size| = total number of values in |origData| (i.e., number of entries *
         /// number of components).
         /// </summary>
-        public virtual void InitializeEncoding(IntArray origData, int numComponents)
+        public virtual void InitializeEncoding(Span<int> origData, int numComponents)
         {
             this.numComponents = numComponents;
         }
@@ -49,9 +49,9 @@ namespace Openize.Draco.Compression
         /// (i.e., elementId * numComponents). The default implementation is equal to
         /// std::minus.
         /// </summary>
-        public virtual void ComputeCorrection(IntArray originalVals, int originalOffset,
-            IntArray predictedVals, int predictedOffset,
-            IntArray outCorrVals, int outOffset, int valId)
+        public virtual void ComputeCorrection(Span<int> originalVals, int originalOffset,
+            Span<int> predictedVals, int predictedOffset,
+            Span<int> outCorrVals, int outOffset, int valId)
         {
             outOffset += valId;
             for (int i = 0; i < numComponents; ++i)
@@ -60,9 +60,9 @@ namespace Openize.Draco.Compression
             }
         }
 
-        public void ComputeCorrection(IntArray originalVals,
-            IntArray predictedVals,
-            IntArray outCorrVals, int valId)
+        public void ComputeCorrection(Span<int> originalVals,
+            Span<int> predictedVals,
+            Span<int> outCorrVals, int valId)
         {
             ComputeCorrection(originalVals, 0, predictedVals, 0, outCorrVals, 0, valId);
         }
@@ -71,11 +71,11 @@ namespace Openize.Draco.Compression
         /// Computes the original value from the input predicted value and the decoded
         /// corrections. The default implementation is equal to std:plus.
         /// </summary>
-        public virtual void ComputeOriginalValue(IntArray predictedVals,
+        public virtual void ComputeOriginalValue(Span<int> predictedVals,
             int predictedOffset,
-            IntArray corrVals,
+            Span<int> corrVals,
             int corrOffset,
-            IntArray outOriginalVals,
+            Span<int> outOriginalVals,
             int outOffset)
         {
             for (int i = 0; i < numComponents; ++i)
@@ -83,9 +83,9 @@ namespace Openize.Draco.Compression
                 outOriginalVals[i + outOffset] = predictedVals[i + predictedOffset] + corrVals[i + corrOffset];
             }
         }
-        public void ComputeOriginalValue(IntArray predictedVals,
-            IntArray corrVals,
-            IntArray outOriginalVals)
+        public void ComputeOriginalValue(Span<int> predictedVals,
+            Span<int> corrVals,
+            Span<int> outOriginalVals)
         {
             ComputeOriginalValue(predictedVals, 0, corrVals, 0, outOriginalVals, 0);
         }

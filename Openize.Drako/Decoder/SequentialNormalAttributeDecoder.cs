@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Openize.Draco.Compression;
 using Openize.Draco.Utils;
@@ -70,7 +72,7 @@ namespace Openize.Draco.Decoder
             float[] attVal = new float[3];
             int quantValId = 0;
             int outBytePos = 0;
-            IntArray values = IntArray.Wrap(PortableAttribute.Buffer.GetBuffer(), 0, numPoints * 2);
+            var values = MemoryMarshal.Cast<byte, int>(PortableAttribute.Buffer.GetBuffer().AsSpan(0, numPoints * 2 * 4));
             for (int i = 0; i < numPoints; ++i)
             {
                 int s = values[quantValId++];

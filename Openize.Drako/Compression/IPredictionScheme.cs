@@ -75,11 +75,11 @@ namespace Openize.Draco.Compression
             return true;
         }
 
-        public abstract bool ComputeCorrectionValues(IntArray in_data, IntArray out_corr, int size, int num_components,
+        public abstract bool ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components,
             int[] entry_to_point_id_map);
 
         // Reverts changes made by the prediction scheme during encoding.
-        public abstract bool ComputeOriginalValues(IntArray in_corr, IntArray out_data, int size, int num_components,
+        public abstract bool ComputeOriginalValues(Span<int> in_corr, Span<int> out_data, int size, int num_components,
             int[] entry_to_point_id_map);
 
     }

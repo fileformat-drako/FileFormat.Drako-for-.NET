@@ -11,7 +11,7 @@ namespace Openize.Draco.Compression
         private const int kNumComponents = 2;
         public PointAttribute pos_attribute_;
         public int[] entry_to_point_id_map_;
-        public IntArray predicted_value_ = IntArray.Array(2);
+        public int[] predicted_value_ = new int[2];
         // Encoded / decoded array of UV flips.
         // TODO(ostava): We should remove this and replace this with in-place encoding
         // and decoding to avoid unnecessary copy.
@@ -36,7 +36,7 @@ namespace Openize.Draco.Compression
             return pos;
         }
 
-        LongVector3 GetTexCoordForEntryId(int entry_id, IntArray data)
+        LongVector3 GetTexCoordForEntryId(int entry_id, Span<int> data)
         {
             int data_offset = entry_id * 2;
             return new LongVector3 (data[data_offset], data[data_offset + 1] );
@@ -44,7 +44,7 @@ namespace Openize.Draco.Compression
 
         // Computes predicted UV coordinates on a given corner. The coordinates are
         // stored in |predicted_value_| member.
-        public bool ComputePredictedValue(bool is_encoder_t, int corner_id, IntArray data, int data_id)
+        public bool ComputePredictedValue(bool is_encoder_t, int corner_id, Span<int> data, int data_id)
         {
             // Compute the predicted UV coordinate from the positions on all corners
             // of the processed triangle. For the best prediction, the UV coordinates

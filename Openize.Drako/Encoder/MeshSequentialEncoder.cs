@@ -118,7 +118,7 @@ namespace Openize.Draco.Encoder
             // Collect all indices to a buffer and encode them.
             // Each new indice is a difference from the previous value.
             int numFaces = Mesh.NumFaces;
-            IntArray indicesBuffer = IntArray.Array(3 * numFaces);
+            Span<int> indicesBuffer = stackalloc int[3 * numFaces];
             int lastIndexValue = 0;
             int p = 0;
             var face = new int[3];

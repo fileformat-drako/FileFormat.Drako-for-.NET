@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Openize.Draco.Utils
@@ -179,9 +180,9 @@ namespace Openize.Draco.Utils
             return string.Format("Length={0}, Capacity = {1}", length, Capacity);
         }
 
-        internal IntArray AsIntArray()
+        internal Span<int> AsIntArray()
         {
-            return IntArray.Wrap(data, 0, length);
+            return MemoryMarshal.Cast<byte, int>(data.AsSpan(0, length));
         }
     }
 }

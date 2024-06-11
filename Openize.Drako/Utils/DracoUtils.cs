@@ -148,7 +148,7 @@ namespace Openize.Draco.Utils
 
         }
 
-        public static long AbsSum(IntArray v)
+        public static long AbsSum(Span<int> v)
         {
             long ret = 0;
             for (int i = 0; i < v.Length; i++)
