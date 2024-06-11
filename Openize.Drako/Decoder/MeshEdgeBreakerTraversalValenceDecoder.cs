@@ -1,0 +1,205 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Openize.Draco.Utils;
+
+namespace Openize.Draco.Decoder
+{
+    class MeshEdgeBreakerTraversalValenceDecoder : MeshEdgeBreakerTraversalDecoder
+    {
+        private static readonly EdgeBreakerTopologyBitPattern[] EdgeBreakerSymbolToTopologyId =
+        {
+            EdgeBreakerTopologyBitPattern.C, EdgeBreakerTopologyBitPattern.S, EdgeBreakerTopologyBitPattern.L, EdgeBreakerTopologyBitPattern.R, EdgeBreakerTopologyBitPattern.E
+        };
+        CornerTable cornerTable;
+        int numVertices = 0;
+        private int[] vertexValences;
+        private EdgeBreakerTopologyBitPattern lastSymbol = EdgeBreakerTopologyBitPattern.Invalid;
+        int activeContext = -1;
+
+        int minValence = 2;
+        int maxValence = 7;
+
+        private IntArray[] contextSymbols;
+        // Points to the active symbol in each context.
+        private int[] contextCounters;
+
+        public override void Init(IMeshEdgeBreakerDecoderImpl decoder)
+        {
+            base.Init(decoder);
+            cornerTable = decoder.CornerTable;
+        }
+
+        public override void SetNumEncodedVertices(int numVertices)
+        {
+            this.numVertices = numVertices;
+        }
+        public override bool Start(out DecoderBuffer outBuffer)
+        {
+            outBuffer = null;
+            if (BitstreamVersion < 22)
+            {
+                if (!base.DecodeTraversalSymbols())
+                    return DracoUtils.Failed();
+            }
+
+            if (!base.DecodeStartFaces())
+                return DracoUtils.Failed();
+            if (!base.DecodeAttributeSeams())
+                return DracoUtils.Failed();
+            outBuffer = buffer.Clone();
+
+            if (BitstreamVersion < 22)
+            {
+                int numSplitSymbols;
+                if (BitstreamVersion < 20)
+                {
+                    if (!outBuffer.Decode(out numSplitSymbols))
+                        return DracoUtils.Failed();
+                }
+                else
+                {
+                    uint tmp;
+                    if (!Decoding.DecodeVarint(out tmp, outBuffer))
+                        return DracoUtils.Failed();
+                    numSplitSymbols = (int)tmp;
+                }
+
+                if (numSplitSymbols >= numVertices)
+                    return DracoUtils.Failed();
+
+                byte mode;
+                if (!outBuffer.Decode(out mode))
+                    return DracoUtils.Failed();
+                if (mode == 0)// Edgebreaker valence mode 2-7
+                {
+                    minValence = 2;
+                    maxValence = 7;
+                }
+                else
+                {
+                    // Unsupported mode.
+                    return DracoUtils.Failed();
+                }
+            }
+            else
+            {
+                minValence = 2;
+                maxValence = 7;
+            }
+
+            if (numVertices < 0)
+                return DracoUtils.Failed();
+            // Set the valences of all initial vertices to 0.
+            vertexValences = new int[numVertices];
+
+            int numUniqueValences = maxValence - minValence + 1;
+
+            // Decode all symbols for all contexts.
+            contextSymbols = new IntArray[numUniqueValences];
+            contextCounters = new int[contextSymbols.Length];
+            for (int i = 0; i < contextSymbols.Length; ++i)
+            {
+                uint numSymbols;
+                Decoding.DecodeVarint(out numSymbols, outBuffer);
+                if (numSymbols > 0)
+                {
+
+                    contextSymbols[i] = IntArray.Array((int)numSymbols);
+                    Decoding.DecodeSymbols((int)numSymbols, 1, outBuffer, contextSymbols[i]);
+                    // All symbols are going to be processed from the back.
+                    contextCounters[i] = (int)numSymbols;
+                }
+            }
+
+            return true;
+        }
+
+        public override EdgeBreakerTopologyBitPattern DecodeSymbol()
+        {
+            // First check if we have a valid context.
+            if (activeContext != -1)
+            {
+                int contextCounter = --contextCounters[activeContext];
+                if (contextCounter < 0)
+                    return EdgeBreakerTopologyBitPattern.Invalid;
+                int symbol_id = contextSymbols[activeContext][contextCounter];
+                lastSymbol = EdgeBreakerSymbolToTopologyId[symbol_id];
+            }
+            else
+            {
+                if (BitstreamVersion < 22)
+                {
+                    // We don't have a predicted symbol or the symbol was mis-predicted.
+                    // Decode it directly.
+                    lastSymbol = base.DecodeSymbol();
+                }
+                else
+                {
+                    // The first symbol must be E.
+                    lastSymbol = EdgeBreakerTopologyBitPattern.E;
+                }
+            }
+
+            return lastSymbol;
+        }
+
+        public override void NewActiveCornerReached(int corner)
+        {
+            int next = cornerTable.Next(corner);
+            int prev = cornerTable.Previous(corner);
+            // Update valences.
+            switch (lastSymbol)
+            {
+                case EdgeBreakerTopologyBitPattern.S:
+                case EdgeBreakerTopologyBitPattern.C:
+                    vertexValences[cornerTable.Vertex(next)] += 1;
+                    vertexValences[cornerTable.Vertex(prev)] += 1;
+                    break;
+                case EdgeBreakerTopologyBitPattern.R:
+                    vertexValences[cornerTable.Vertex(corner)] += 1;
+                    vertexValences[cornerTable.Vertex(next)] += 1;
+                    vertexValences[cornerTable.Vertex(prev)] += 2;
+                    break;
+                case EdgeBreakerTopologyBitPattern.L:
+                    vertexValences[cornerTable.Vertex(corner)] += 1;
+                    vertexValences[cornerTable.Vertex(next)] += 2;
+                    vertexValences[cornerTable.Vertex(prev)] += 1;
+                    break;
+                case EdgeBreakerTopologyBitPattern.E:
+                    vertexValences[cornerTable.Vertex(corner)] += 2;
+                    vertexValences[cornerTable.Vertex(next)] += 2;
+                    vertexValences[cornerTable.Vertex(prev)] += 2;
+                    break;
+                default:
+                    break;
+            }
+
+            // Compute the new context that is going to be used to decode the next
+            // symbol.
+            int activeValence = vertexValences[cornerTable.Vertex(next)];
+            int clampedValence;
+            if (activeValence < minValence)
+            {
+                clampedValence = minValence;
+            }
+            else if (activeValence > maxValence)
+            {
+                clampedValence = maxValence;
+            }
+            else
+            {
+                clampedValence = activeValence;
+            }
+
+            activeContext = (clampedValence - minValence);
+        }
+
+        public override void MergeVertices(int dest, int source)
+        {
+            // Update valences on the merged vertices.
+            vertexValences[dest] += vertexValences[source];
+        }
+    }
+}
