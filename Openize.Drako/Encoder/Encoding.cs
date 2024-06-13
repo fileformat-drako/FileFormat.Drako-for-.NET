@@ -152,7 +152,7 @@ namespace Openize.Draco.Encoder
             // Approximate number of bits needed for storing the symbols using the tagged
             // scheme.
             long tagged_scheme_total_bits =
-                ApproximateTaggedSchemeBits(bitLengths, numComponents);
+                ApproximateTaggedSchemeBits(bitLengths.AsSpan(), numComponents);
 
             // Approximate number of bits needed for storing the symbols using the raw
             // scheme.
@@ -201,7 +201,7 @@ namespace Openize.Draco.Encoder
             return false;
         }
 
-        static bool EncodeTaggedSymbols(Span<int> symbols, int numComponents, Span<int> bitLengths,
+        static bool EncodeTaggedSymbols(Span<int> symbols, int numComponents, int[] bitLengths,
             EncoderBuffer targetBuffer)
         {
             // Create entries for entropy coding. Each entry corresponds to a different

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Openize.Draco
 {
-#if NET46 || CSPORTER
+#if CSPORTER
     public struct Vector2
     {
         public float X;

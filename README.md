@@ -54,7 +54,7 @@ var drcBytes = Openize.Draco.Draco.Encode(mesh, opt);
 ```
 
 ## License
-Openize.HEIC is available under [Openize License](LICENSE).
+Openize.Drako is available under [Openize License](LICENSE).
 > [!CAUTION]
 > Openize does not and cannot grant You a patent license for the utilization of [Google Draco](https://github.com/google/draco) compression/decompression technologies.
 

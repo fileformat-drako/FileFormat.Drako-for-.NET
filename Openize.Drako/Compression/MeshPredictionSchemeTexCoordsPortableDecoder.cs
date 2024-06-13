@@ -33,7 +33,7 @@ namespace Openize.Draco.Compression
 
                 int dst_offset = p * num_components;
                 this.transform_.ComputeCorrection(in_data, dst_offset,
-                    predictor_.predicted_value_, 0,
+                    predictor_.predicted_value_.AsSpan(), 0,
                     out_corr, dst_offset, 0);
             }
 
@@ -83,7 +83,7 @@ namespace Openize.Draco.Compression
                     return DracoUtils.Failed();
 
                 int dst_offset = p * numComponents;
-                this.transform_.ComputeOriginalValue(predictor_.predicted_value_, 0,
+                this.transform_.ComputeOriginalValue(predictor_.predicted_value_.AsSpan(), 0,
                                                        inCorr, dst_offset,
                                                        outData, dst_offset);
             }

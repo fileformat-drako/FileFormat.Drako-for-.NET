@@ -150,7 +150,7 @@ namespace Openize.Draco.Compression
                 else
                     clampedValue[i] = v;
             }
-            return clampedValue;
+            return clampedValue.AsSpan();
         }
 
         public override bool EncodeTransformData(EncoderBuffer buffer)

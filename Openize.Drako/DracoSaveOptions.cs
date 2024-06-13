@@ -97,7 +97,7 @@ namespace Openize.Draco
         public DracoEncodeOptions()
         {
 
-            PositionBits = 14;
+            PositionBits = 11;
             TextureCoordinateBits = 12;
             NormalBits = 10;
             ColorBits = 10;

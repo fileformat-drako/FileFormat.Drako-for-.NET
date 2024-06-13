@@ -47,6 +47,7 @@ namespace Openize.Draco.Compression
             this.numComponents = numComponents;
             this.entryToPointIdMap = entryToPointIdMap;
             predictedValue = new int[numComponents];
+            var predictedValueSpan = predictedValue.AsSpan();
             this.transform_.InitializeEncoding(inData, numComponents);
             // We start processing from the end because this prediction uses data from
             // previous entries that could be overwritten when an entry is processed.
@@ -56,7 +57,7 @@ namespace Openize.Draco.Compression
                 ComputePredictedValue(true, cornerId, inData, p);
 
                 int dstOffset = p * numComponents;
-                this.transform_.ComputeCorrection(inData, dstOffset, predictedValue, 0, outCorr, 0, dstOffset);
+                this.transform_.ComputeCorrection(inData, dstOffset, predictedValueSpan, 0, outCorr, 0, dstOffset);
             }
             return true;
         }
@@ -66,6 +67,7 @@ namespace Openize.Draco.Compression
             this.numComponents = numComponents;
             this.entryToPointIdMap = entryToPointIdMap;
             predictedValue = new int[numComponents];
+            var predictedValueSpan = predictedValue.AsSpan();
             this.transform_.InitializeDecoding(numComponents);
 
             int cornerMapSize = this.meshData.dataToCornerMap.Count;
@@ -75,7 +77,7 @@ namespace Openize.Draco.Compression
                 ComputePredictedValue(false, cornerId, outData, p);
 
                 int dstOffset = p * numComponents;
-                this.transform_.ComputeOriginalValue(predictedValue, 0, inCorr, dstOffset, outData, dstOffset);
+                this.transform_.ComputeOriginalValue(predictedValueSpan, 0, inCorr, dstOffset, outData, dstOffset);
             }
             return true;
         }

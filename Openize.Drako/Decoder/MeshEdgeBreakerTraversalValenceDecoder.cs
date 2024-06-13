@@ -107,7 +107,7 @@ namespace Openize.Draco.Decoder
                 {
 
                     contextSymbols[i] = new int[(int)numSymbols];
-                    Decoding.DecodeSymbols((int)numSymbols, 1, outBuffer, contextSymbols[i]);
+                    Decoding.DecodeSymbols((int)numSymbols, 1, outBuffer, contextSymbols[i].AsSpan());
                     // All symbols are going to be processed from the back.
                     contextCounters[i] = (int)numSymbols;
                 }

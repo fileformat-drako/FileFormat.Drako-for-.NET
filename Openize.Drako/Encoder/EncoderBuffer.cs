@@ -238,7 +238,9 @@ namespace Openize.Draco.Encoder
             int offset = this.buffer.Length;
             this.buffer.Length += bytes;
             //Buffer.BlockCopy(ints.data, ints.ByteOffset * 4, this.buffer.GetBuffer(), offset, bytes);
-            MemoryMarshal.Cast<int, byte>(ints).CopyTo(buffer.GetBuffer().AsSpan(offset, bytes));
+            var dst = MemoryMarshal.Cast<byte, int>(buffer.GetBuffer().AsSpan(offset, bytes));
+            ints.Slice(bytesOffset / 4, bytes / 4).CopyTo(dst);
+
         }
         internal void Encode(Span<int> ints, int bytes)
         {

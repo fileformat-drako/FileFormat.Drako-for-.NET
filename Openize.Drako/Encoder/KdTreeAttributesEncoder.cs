@@ -89,8 +89,9 @@ namespace Openize.Draco.Encoder
                     attribute_quantization_transforms_.Add(attribute_quantization_transform);
                     // Store the quantized attribute in an array that will be used when we do
                     // the actual encoding of the data.
-                    quantized_portable_attributes_.Add(
-                        attribute_quantization_transform.GeneratePortableAttribute(att, (int) num_points));
+                    var portable_att = attribute_quantization_transform.InitTransformedAttribute(att, num_points);
+                        attribute_quantization_transform.GeneratePortableAttribute(att, (int) num_points, portable_att);
+                    quantized_portable_attributes_.Add(portable_att);
                 }
                 else if (att.DataType == DataType.INT32 || att.DataType == DataType.INT16 ||
                          att.DataType == DataType.INT8)

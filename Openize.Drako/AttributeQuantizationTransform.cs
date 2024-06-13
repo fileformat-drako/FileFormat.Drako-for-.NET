@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Openize.Draco.Encoder;
 using Openize.Draco.Utils;
@@ -44,12 +45,6 @@ namespace Openize.Draco
     abstract class AttributeTransform
     {
 
-        // Return attribute transform type.
-        public abstract AttributeTransformType Type();
-
-        // Try to init transform from attribute.
-        public abstract bool InitFromAttribute(PointAttribute attribute);
-
         // Copy parameter values into the provided AttributeTransformData instance.
         public abstract void CopyToAttributeTransformData(AttributeTransformData outData);
 
@@ -82,6 +77,29 @@ namespace Openize.Draco
 
             return portable_attribute;
         }
+
+        public PointAttribute InitTransformedAttribute(
+            PointAttribute src_attribute, int num_entries)
+        {
+            int num_components = GetTransformedNumComponents(src_attribute);
+            DataType dt = GetTransformedDataType(src_attribute);
+
+            PointAttribute transformed_attribute = new PointAttribute();
+            transformed_attribute.AttributeType = src_attribute.AttributeType;
+            transformed_attribute.ComponentsCount = num_components;
+            transformed_attribute.DataType = dt;
+            transformed_attribute.Normalized = false;
+            transformed_attribute.ByteStride = num_components * DracoUtils.DataTypeLength(dt);
+
+            transformed_attribute.Reset(num_entries);
+            transformed_attribute.IdentityMapping = true;
+
+            transformed_attribute.UniqueId = src_attribute.UniqueId;
+            return transformed_attribute;
+        }
+
+        protected abstract DataType GetTransformedDataType(PointAttribute attribute);
+        protected abstract int GetTransformedNumComponents(PointAttribute attribute);
     }
 
     class AttributeQuantizationTransform : AttributeTransform
@@ -95,30 +113,16 @@ namespace Openize.Draco
         // Bounds of the dequantized attribute (max delta over all components).
         public float range_;
 
-        public override AttributeTransformType Type()
+        protected override DataType GetTransformedDataType(PointAttribute attribute)
         {
-            return AttributeTransformType.QuantizationTransform;
+            return DataType.UINT32;
+
+        }
+        protected override int GetTransformedNumComponents(PointAttribute attribute)
+        {
+            return attribute.ComponentsCount;
         }
 
-        public override bool InitFromAttribute(PointAttribute attribute)
-        {
-            AttributeTransformData transform_data =
-                attribute.AttributeTransformData;
-            if (transform_data == null || transform_data.transformType != AttributeTransformType.QuantizationTransform)
-                return DracoUtils.Failed(); // Wrong transform type.
-            int byte_offset = 0;
-            quantization_bits_ = transform_data.GetInt(byte_offset);
-            byte_offset += 4;
-            min_values_ = new float[attribute.ComponentsCount];
-            for (int i = 0; i < attribute.ComponentsCount; ++i)
-            {
-                min_values_[i] = transform_data.GetFloat(byte_offset);
-                byte_offset += 4;
-            }
-
-            range_ = transform_data.GetFloat(byte_offset);
-            return true;
-        }
 
 // Copy parameter values into the provided AttributeTransformData instance.
         public override void CopyToAttributeTransformData(AttributeTransformData out_data)
@@ -132,6 +136,24 @@ namespace Openize.Draco
 
             out_data.AppendValue(range_);
         }
+
+        public bool TransformAttribute(
+            PointAttribute attribute, int[] point_ids,
+            PointAttribute target_attribute)
+        {
+            if (point_ids.Length == 0)
+            {
+                GeneratePortableAttribute(attribute, target_attribute.NumUniqueEntries,
+                                          target_attribute);
+            }
+            else
+            {
+                GeneratePortableAttribute(attribute, point_ids, target_attribute.NumUniqueEntries,
+                                          target_attribute);
+            }
+            return true;
+        }
+
 
         public void SetParameters(int quantization_bits, float[] min_values, int num_components, float range)
         {
@@ -197,20 +219,19 @@ namespace Openize.Draco
             return DracoUtils.Failed();
         }
 
-        public PointAttribute GeneratePortableAttribute(PointAttribute attribute, int num_points)
+        public void GeneratePortableAttribute(PointAttribute attribute, int num_points, PointAttribute target_attribute)
         {
 
             // Allocate portable attribute.
             int num_entries = num_points;
             int num_components = attribute.ComponentsCount;
-            PointAttribute portable_attribute = InitPortableAttribute(num_entries, num_components, 0, attribute, true);
 
             // Quantize all values using the order given by point_ids.
-            int offset = portable_attribute.ByteOffset;
+            Span<int> portable_attribute_data = MemoryMarshal.Cast<byte, int>(target_attribute.GetAddress(0));
 
             int max_quantized_value = (1 << (quantization_bits_)) - 1;
             Quantizer quantizer = new Quantizer(range_, max_quantized_value);
-            //int dst_index = 0;
+            int dst_index = 0;
             float[] att_val = new float[num_components];
             for (int i = 0; i < num_points; ++i)
             {
@@ -220,28 +241,25 @@ namespace Openize.Draco
                 {
                     float value = (att_val[c] - min_values_[c]);
                     int q_val = quantizer.QuantizeFloat(value);
-                    portable_attribute.Buffer.Write(offset, q_val);
-                    offset += 4;
+                    portable_attribute_data[dst_index++] = q_val;
                 }
             }
 
-            return portable_attribute;
         }
 
-        public PointAttribute GeneratePortableAttribute(PointAttribute attribute, int[] point_ids, int num_points)
+        public void GeneratePortableAttribute(PointAttribute attribute, int[] point_ids, int num_points, PointAttribute target_attribute)
         {
             // Allocate portable attribute.
             int num_entries = point_ids.Length;
             int num_components = attribute.ComponentsCount;
-            PointAttribute portable_attribute = InitPortableAttribute(
-                num_entries, num_components, num_points, attribute, true);
 
             // Quantize all values using the order given by point_ids.
-            int offset = portable_attribute.ByteOffset;
+            Span<int> portable_attribute_data = MemoryMarshal.Cast<byte, int>(target_attribute.GetAddress(0));
+
             int max_quantized_value = (1 << (quantization_bits_)) - 1;
             Quantizer quantizer = new Quantizer(range_, max_quantized_value);
-            //int dst_index = 0;
-            float[] att_val = new float[num_components];
+            int dst_index = 0;
+            Span<float> att_val = stackalloc float[num_components];
             for (int i = 0; i < point_ids.Length; ++i)
             {
                 int att_val_id = attribute.MappedIndex(point_ids[i]);
@@ -250,12 +268,10 @@ namespace Openize.Draco
                 {
                     float value = (att_val[c] - min_values_[c]);
                     int q_val = quantizer.QuantizeFloat(value);
-                    portable_attribute.Buffer.Write(offset, q_val);
-                    offset += 4;
+                    portable_attribute_data[dst_index++] = q_val;
                 }
             }
 
-            return portable_attribute;
         }
     }
 }

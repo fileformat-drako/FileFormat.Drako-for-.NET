@@ -50,6 +50,7 @@ namespace Openize.Draco
                 numUniqueEntries = buffer.Length / this.ByteStride;
         }
 
+#if !CSPORTER
         /// <summary>
         /// Wrap Vector2 to PointAttribute
         /// </summary>
@@ -86,6 +87,58 @@ namespace Openize.Draco
                 buffer: new DataBuffer(bytes) //construct a data buffer from Span<byte>, the number of the positions is calculated inside the constructor of PointAttribute
              );
         }
+#else
+        /// <summary>
+        /// Wrap Vector2 to PointAttribute
+        /// </summary>
+        /// <param name="type">Attribute's type</param>
+        /// <param name="vectors">Attribute data</param>
+        /// <returns></returns>
+        public static PointAttribute Wrap(AttributeType type, Vector2[] vectors)
+        {
+            var bytes = new byte[4 * 2 * vectors.Length];
+            for(int i = 0, p = 0; i < vectors.Length; i++)
+            {
+                Unsafe.PutLE32(bytes, p, Unsafe.FloatToUInt32(vectors[i].X));
+                Unsafe.PutLE32(bytes, p + 4, Unsafe.FloatToUInt32(vectors[i].Y));
+                p += 8;
+            }
+            return new PointAttribute(
+                type,
+                DataType.FLOAT32, 2, // data type for position is  float[3]
+                false,
+                -1, // -1 means auto infer the stride from data type
+                0, //offset in the buffer to the first position
+                new DataBuffer(bytes) //construct a data buffer from Span<byte>, the number of the positions is calculated inside the constructor of PointAttribute
+             );
+        }
+        /// <summary>
+        /// Wrap Vector3 to PointAttribute
+        /// </summary>
+        /// <param name="type">Attribute's type</param>
+        /// <param name="vectors">Attribute data</param>
+        /// <returns></returns>
+        public static PointAttribute Wrap(AttributeType type, Vector3[] vectors)
+        {
+            var bytes = new byte[4 * 3 * vectors.Length];
+            for(int i = 0, p = 0; i < vectors.Length; i++)
+            {
+                Unsafe.PutLE32(bytes, p, Unsafe.FloatToUInt32(vectors[i].X));
+                Unsafe.PutLE32(bytes, p + 4, Unsafe.FloatToUInt32(vectors[i].Y));
+                Unsafe.PutLE32(bytes, p + 8, Unsafe.FloatToUInt32(vectors[i].Z));
+                p += 12;
+            }
+            return new PointAttribute(
+                type,
+                DataType.FLOAT32, 3, // data type for position is  float[3]
+                false,
+                -1, // -1 means auto infer the stride from data type
+                0, //offset in the buffer to the first position
+                new DataBuffer(bytes) //construct a data buffer from Span<byte>, the number of the positions is calculated inside the constructor of PointAttribute
+             );
+        }
+
+#endif
 
         /// <summary>
         /// Fills outData with the raw value of the requested attribute entry.
@@ -165,6 +218,7 @@ namespace Openize.Draco
             }
             int entrySize = DracoUtils.DataTypeLength(DataType) * ComponentsCount;
             buffer.Capacity = numAttributeValues*entrySize;
+            buffer.Length = numAttributeValues*entrySize;
             this.ByteStride = entrySize;
             this.ByteOffset = 0;
             // Assign the new buffer to the parent attribute.
@@ -409,6 +463,12 @@ namespace Openize.Draco
                 attributeTransformData = null;
             }
             */
+        }
+
+        internal Span<byte> GetAddress(int attIndex)
+        {
+            var byte_pos = GetBytePos(attIndex);
+            return buffer.AsSpan().Slice(byte_pos);
         }
     }
 }

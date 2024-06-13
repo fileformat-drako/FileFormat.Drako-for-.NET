@@ -1,23 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <RootNamespace>Openize.Drako</RootNamespace>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <Optimize>false</Optimize>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <TargetFramework>net8.0</TargetFramework>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-    <TargetFramework />
-    <TargetFrameworks>net6.0;net7.0;net8.0;net4.6;netstandard2.1</TargetFrameworks>
-    <GenerateResourceMSBuildArchitecture>CurrentArchitecture</GenerateResourceMSBuildArchitecture>
-    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
-  </PropertyGroup>
+	<PropertyGroup>
+		<RootNamespace>Openize.Drako</RootNamespace>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
+		<PackageId>Openize.Drako</PackageId>
+		<Version>1.4.0</Version>
+		<PackageTags>Draco;Google Draco;3D;Compression;Openize</PackageTags>
+		<Description>
+			This library was ported from Google Draco, allows users to efficiently compress and decompress 3D data in .NET.
+			Draco helps reduce file sizes while maintaining the quality of your 3D models, making it easier to store and share your 3D content.
+		</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<Optimize>false</Optimize>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<TargetFramework>net4.6</TargetFramework>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+		<Optimize>true</Optimize>
+		<DebugType>pdbonly</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+		<TargetFramework />
+		<TargetFrameworks>net6.0;net7.0;net8.0;net4.6;netstandard2.1</TargetFrameworks>
+		<GenerateResourceMSBuildArchitecture>CurrentArchitecture</GenerateResourceMSBuildArchitecture>
+		<GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
+	</PropertyGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net4.6' ">
+		<PackageReference Include="System.Memory" Version="4.5.5" />
+		<PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="\"/>
+		<None Include="..\LICENSE" Pack="true" PackagePath="\"/>
+	</ItemGroup>
 </Project>

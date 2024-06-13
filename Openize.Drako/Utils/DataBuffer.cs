@@ -39,6 +39,7 @@ namespace Openize.Draco.Utils
         {
             this.data = data;
             extendable = false;
+            this.length = data.Length;
         }
         public DataBuffer(Span<byte> data)
         {
@@ -173,6 +174,10 @@ namespace Openize.Draco.Utils
             byte[] ret = new byte[length];
             Array.Copy(data, ret, length);
             return ret;
+        }
+        public Span<byte> AsSpan()
+        {
+            return data.AsSpan().Slice(0, length);
         }
 
         public override string ToString()

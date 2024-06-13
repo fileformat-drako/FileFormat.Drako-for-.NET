@@ -163,10 +163,10 @@ namespace Openize.Draco.Utils
             if (BitConverter.IsLittleEndian)
             {
 #if CSPORTER
-                arr[off + 3] = (byte)((val >> 0) & 0xff);
-                arr[off + 2] = (byte)((val >> 8) & 0xff);
-                arr[off + 1] = (byte)((val >> 16) & 0xff);
-                arr[off + 0] = (byte)((val >> 24) & 0xff);
+                arr[off + 0] = (byte)((val >> 0) & 0xff);
+                arr[off + 1] = (byte)((val >> 8) & 0xff);
+                arr[off + 2] = (byte)((val >> 16) & 0xff);
+                arr[off + 3] = (byte)((val >> 24) & 0xff);
 #else
                 fixed (byte* p = arr)
                 {
@@ -177,10 +177,10 @@ namespace Openize.Draco.Utils
             else
             {
 
-                arr[off] = (byte)((val >> 0) & 0xff);
-                arr[off + 1] = (byte)((val >> 8) & 0xff);
-                arr[off + 2] = (byte)((val >> 16) & 0xff);
-                arr[off + 3] = (byte)((val >> 24) & 0xff);
+                arr[off + 3] = (byte)((val >> 0) & 0xff);
+                arr[off + 2] = (byte)((val >> 8) & 0xff);
+                arr[off + 1] = (byte)((val >> 16) & 0xff);
+                arr[off + 0] = (byte)((val >> 24) & 0xff);
             }
         }
 

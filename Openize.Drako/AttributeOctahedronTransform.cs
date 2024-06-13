@@ -18,19 +18,13 @@ namespace Openize.Draco
             this.quantizationBits = quantizationBits;
         }
 
-        public override AttributeTransformType Type()
+        protected override DataType GetTransformedDataType(PointAttribute attribute)
         {
-            return AttributeTransformType.OctahedronTransform;
+            return DataType.UINT32;
         }
-
-        public override bool InitFromAttribute(PointAttribute attribute)
+        protected override int GetTransformedNumComponents(PointAttribute attribute)
         {
-
-            AttributeTransformData transform_data = attribute.AttributeTransformData;
-            if (transform_data == null || transform_data.transformType != AttributeTransformType.OctahedronTransform)
-                return DracoUtils.Failed(); // Wrong transform type.
-            quantizationBits = transform_data.GetInt(0);
-            return true;
+            return 2;
         }
 
         public override void CopyToAttributeTransformData(AttributeTransformData outData)
@@ -64,11 +58,7 @@ namespace Openize.Draco
 
             // Quantize all values in the order given by point_ids into portable
             // attribute.
-#if NET46
-            Span<float> att_val = new float[3];
-#else
             Span<float> att_val = stackalloc float[3];
-#endif
             int dst_index = 0;
             OctahedronToolBox converter = new OctahedronToolBox();
             if (!converter.SetQuantizationBits(quantizationBits))

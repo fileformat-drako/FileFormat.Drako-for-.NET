@@ -75,9 +75,15 @@ namespace Openize.Draco.Encoder
 
         protected override bool PrepareValues(int[] pointIds, int numPoints)
         {
-            this.portableAttribute = 
-                attribute_quantization_transform_.GeneratePortableAttribute(
-                    attribute, pointIds, numPoints);
+            var portable_attribute = attribute_quantization_transform_.InitTransformedAttribute(
+                    attribute, pointIds.Length);
+            if (!attribute_quantization_transform_.TransformAttribute(
+                    attribute, pointIds, portable_attribute))
+            {
+                return false;
+            }
+            this.portableAttribute = portable_attribute;
+
             return true;
         }
     }
