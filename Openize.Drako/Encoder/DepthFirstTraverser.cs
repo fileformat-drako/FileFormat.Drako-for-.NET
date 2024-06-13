@@ -1,6 +1,6 @@
-﻿using Openize.Draco.Utils;
+﻿using Openize.Drako.Utils;
 
-namespace Openize.Draco.Encoder
+namespace Openize.Drako.Encoder
 {
     internal class DepthFirstTraverser : TraverserBase<CornerTable>
     {

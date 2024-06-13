@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Decoder;
-using Openize.Draco.Utils;
+using Openize.Drako.Decoder;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco.Compression
+namespace Openize.Drako.Compression
 {
 
     partial class MeshPredictionSchemeGeometricNormal : MeshPredictionScheme

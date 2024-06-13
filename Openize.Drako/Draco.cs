@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Openize.Draco;
-using Openize.Draco.Decoder;
-using Openize.Draco.Encoder;
-using Openize.Draco.Utils;
+using Openize.Drako;
+using Openize.Drako.Decoder;
+using Openize.Drako.Encoder;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco
+namespace Openize.Drako
 {
     /// <summary>
     /// Google Draco

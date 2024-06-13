@@ -1,12 +1,12 @@
-﻿using Openize.Draco.Decoder;
+﻿using Openize.Drako.Decoder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Utils;
-using Openize.Draco.Encoder;
+using Openize.Drako.Utils;
+using Openize.Drako.Encoder;
 
-namespace Openize.Draco.Compression
+namespace Openize.Drako.Compression
 {
     class MeshPredictionSchemeTexCoordsPortableDecoder : MeshPredictionScheme
     {

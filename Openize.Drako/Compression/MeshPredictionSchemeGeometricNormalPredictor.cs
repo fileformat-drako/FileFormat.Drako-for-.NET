@@ -1,10 +1,10 @@
-﻿using Openize.Draco.Utils;
+﻿using Openize.Drako.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Openize.Draco.Compression
+namespace Openize.Drako.Compression
 {
     enum NormalPredictionMode : byte
     {

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Utils;
-using Openize.Draco.Decoder;
-using Openize.Draco.Encoder;
+using Openize.Drako.Utils;
+using Openize.Drako.Decoder;
+using Openize.Drako.Encoder;
 
-namespace Openize.Draco.Compression
+namespace Openize.Drako.Compression
 {
 
     class PredictionSchemeNormalOctahedronTransformBase : PredictionSchemeTransform

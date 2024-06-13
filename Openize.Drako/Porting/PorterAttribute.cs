@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Openize.Draco
+namespace Openize.Drako
 {
     [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
     internal class PorterAttribute : Attribute

@@ -1,9 +1,9 @@
-﻿using Openize.Draco.Utils;
+﻿using Openize.Drako.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Openize.Draco.Decoder
+namespace Openize.Drako.Decoder
 {
     class DracoLoadOptions
     {

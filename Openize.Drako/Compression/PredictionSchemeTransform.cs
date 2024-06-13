@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Openize.Draco.Decoder;
-using Openize.Draco.Encoder;
-using Openize.Draco.Utils;
+using Openize.Drako.Decoder;
+using Openize.Drako.Encoder;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco.Compression
+namespace Openize.Drako.Compression
 {
 
     /// <summary>

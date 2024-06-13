@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Utils;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco
+namespace Openize.Drako
 {
 
     /// <summary>
@@ -109,7 +109,6 @@ namespace Openize.Draco
 
         public PointAttribute Attribute(int attId)
         {
-            Debug.Assert(attId >= 0 && attId < attributes.Count);
             return attributes[attId];
         }
 

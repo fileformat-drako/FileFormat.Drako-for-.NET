@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Encoder;
-using Openize.Draco.Utils;
+using Openize.Drako.Encoder;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco
+namespace Openize.Drako
 {
     class EdgeBreakerTraverser<TCornerTable> : TraverserBase<TCornerTable> where TCornerTable:ICornerTable
     {

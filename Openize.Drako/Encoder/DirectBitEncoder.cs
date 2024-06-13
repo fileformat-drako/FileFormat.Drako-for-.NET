@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Utils;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco.Encoder
+namespace Openize.Drako.Encoder
 {
     class DirectBitEncoder : IBitEncoder
     {

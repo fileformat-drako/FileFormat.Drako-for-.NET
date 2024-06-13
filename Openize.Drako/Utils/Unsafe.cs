@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Openize.Draco.Utils
+namespace Openize.Drako.Utils
 {
     unsafe class Unsafe
     {
@@ -214,8 +214,6 @@ namespace Openize.Draco.Utils
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float[] ToFloatArray(byte[] array, float[] ret)
         {
-            Debug.Assert(array != null);
-            Debug.Assert(ret != null);
             if (ret.Length == 0)
                 return ret;
 #if CSPORTER

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Utils;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco.Encoder
+namespace Openize.Drako.Encoder
 {
     /// <summary>
     /// Encodes all attributes of a given PointCloud using one of the available

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Decoder;
-using Openize.Draco.Utils;
+using Openize.Drako.Decoder;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco
+namespace Openize.Drako
 {
 
     /// <summary>
@@ -130,9 +130,6 @@ namespace Openize.Draco
         /// </summary>
         public uint DecodeLeastSignificantBits32(int nbits)
         {
-            Debug.Assert(nbits <= 32);
-            Debug.Assert(nbits > 0);
-
             uint result = 0;
             while (nbits > 0)
             {

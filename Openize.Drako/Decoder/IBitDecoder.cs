@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Openize.Draco.Decoder
+namespace Openize.Drako.Decoder
 {
     interface IBitDecoder
     {

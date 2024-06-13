@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Openize.Draco
+namespace Openize.Drako
 {
 
     /// <summary>

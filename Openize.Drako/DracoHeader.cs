@@ -1,7 +1,7 @@
-﻿using Openize.Draco.Decoder;
-using Openize.Draco.Utils;
+﻿using Openize.Drako.Decoder;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco
+namespace Openize.Drako
 {
     class DracoHeader
     {

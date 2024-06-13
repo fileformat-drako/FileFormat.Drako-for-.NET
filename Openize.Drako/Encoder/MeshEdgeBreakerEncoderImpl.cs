@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Utils;
-using Openize.Draco.Compression;
+using Openize.Drako.Utils;
+using Openize.Drako.Compression;
 
-namespace Openize.Draco.Encoder
+namespace Openize.Drako.Encoder
 {
 
     /// <summary>

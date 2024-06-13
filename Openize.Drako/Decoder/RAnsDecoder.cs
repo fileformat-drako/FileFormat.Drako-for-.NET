@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Utils;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco.Decoder
+namespace Openize.Drako.Decoder
 {
     /// <summary>
     /// Class for performing rANS decoding using a desired number of precision bits.

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Draco.Utils;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco.Encoder
+namespace Openize.Drako.Encoder
 {
 
     /// <summary>
@@ -43,8 +43,6 @@ namespace Openize.Draco.Encoder
             ransPrecision = 1 << ransPrecisionBits;
 
             ans = new RAnsEncoder(ransPrecisionBits);
-
-            Debug.Assert(this.numSymbols <= maxSymbols);
 
             // Compute the total of the input frequencies.
             ulong totalFreq = 0;

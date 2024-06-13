@@ -1,10 +1,10 @@
-﻿using Openize.Draco.Utils;
+﻿using Openize.Drako.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Openize.Draco.Encoder
+namespace Openize.Drako.Encoder
 {
     class DynamicIntegerPointsKdTreeEncoder
     {

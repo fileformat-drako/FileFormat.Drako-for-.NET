@@ -4,9 +4,9 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Openize.Draco.Utils;
+using Openize.Drako.Utils;
 
-namespace Openize.Draco
+namespace Openize.Drako
 {
 #if DRACO_EMBED_MODE
     internal
@@ -287,7 +287,6 @@ namespace Openize.Draco
         public void SetPointMapEntry(int pointIndex,
             int entryIndex)
         {
-            Debug.Assert(!IdentityMapping);
             indicesMap[pointIndex] = entryIndex;
         }
 

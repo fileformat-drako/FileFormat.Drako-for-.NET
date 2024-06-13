@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Openize.Draco.Utils
+namespace Openize.Drako.Utils
 {
     /// <summary>
     /// The differences between <see cref="DataBuffer"/> and <see cref="RawStreamReader"/> is that this encapsulates the random access of binary data.
@@ -51,8 +51,6 @@ namespace Openize.Draco.Utils
 
         public void Write(int offset, byte[] data, int len)
         {
-            Debug.Assert(data != null);
-            Debug.Assert(len <= data.Length);
             Write(offset, data, 0, len);
         }
 
@@ -94,15 +92,10 @@ namespace Openize.Draco.Utils
         }
         public void Write(int offset, byte[] data)
         {
-            Debug.Assert(data != null);
             Write(offset, data, 0, data.Length);
         }
         public void Write(int offset, byte[] data, int start, int len)
         {
-            Debug.Assert(data != null);
-            Debug.Assert(len + start <= data.Length);
-            Debug.Assert(start >= 0);
-            Debug.Assert(offset >= 0);
             version++;
             Length = offset + len;
             Array.Copy(data, start, this.data, offset, len);
@@ -118,10 +111,6 @@ namespace Openize.Draco.Utils
         }
         public int Read(int offset, byte[] result, int start, int len)
         {
-            Debug.Assert(result != null);
-            Debug.Assert(offset+len <= this.data.Length);
-            Debug.Assert(start+len <= result.Length);
-            Debug.Assert(len <= result.Length);
             Array.Copy(data, offset, result, start, len);
             return len;
         } 

@@ -1,4 +1,4 @@
-﻿namespace Openize.Draco.Encoder
+﻿namespace Openize.Drako.Encoder
 {
     abstract class TraverserBase<TCornerTable> : ICornerTableTraverser<TCornerTable> where TCornerTable:ICornerTable
     {
