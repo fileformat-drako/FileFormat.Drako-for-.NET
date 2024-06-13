@@ -83,6 +83,10 @@ namespace Openize.Drako.Encoder
                         i;
                 }
 
+                if (portable_att.IdentityMapping)
+                {
+                    portable_att.SetExplicitMapping(Encoder.PointCloud.NumPoints);
+                }
                 // Go over all points of the original attribute and update the mapping in
                 // the portable attribute.
                 for (int i = 0; i < Encoder.PointCloud.NumPoints; ++i)
