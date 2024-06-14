@@ -29,12 +29,12 @@ Vector3[] controlPoints = new Vector3[]
 
 int[] indices = new int[]
 {
-        0,1,2,3, // Front face (Z+)
-        1,5,6,2, // Right side (X+)
-        5,4,7,6, // Back face (Z-)
-        4,0,3,7, // Left side (X-)
-        0,4,5,1, // Bottom face (Y-)
-        3,2,6,7 // Top face (Y+)
+        0,1,2, 0, 2, 3, // Front face (Z+)
+        1,5,6, 1, 6, 2, // Right side (X+)
+        5,4,7, 5, 7, 6, // Back face (Z-)
+        4,0,3, 4, 3, 7, // Left side (X-)
+        0,4,5, 0, 5, 1, // Bottom face (Y-)
+        3,2,6, 3, 6, 7 // Top face (Y+)
 };
 
 var mesh = new DracoMesh();

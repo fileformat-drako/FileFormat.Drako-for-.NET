@@ -45,7 +45,7 @@ namespace Openize.Drako
             attribute.SetExplicitMapping(mesh.NumPoints);
             int numFaces = mesh.NumFaces;
             int numPoints = mesh.NumPoints;
-            var face = new int[3];
+            Span<int> face = stackalloc int[3];
             for (int f = 0; f < numFaces; ++f)
             {
                 mesh.ReadFace(f, face);

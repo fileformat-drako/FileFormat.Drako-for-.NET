@@ -28,6 +28,8 @@ namespace Openize.Drako
         /// <returns>a <see cref="DracoPointCloud"/> or <see cref="DracoMesh"/> instance</returns>
         public static DracoPointCloud Decode(byte[] data)
         {
+            if (data == null)
+                throw new ArgumentNullException("data");
             DecoderBuffer buffer = new DecoderBuffer(data);
             return DracoMesh.Decode(buffer);
         }
@@ -36,7 +38,6 @@ namespace Openize.Drako
         /// Encode the point cloud or mesh and get the encoded bytes in draco format.
         /// </summary>
         /// <param name="m">The <see cref="DracoPointCloud"/> or <see cref="DracoMesh"> instance </param>
-        /// <param name="options">Encode options</param>
         /// <returns>Bytes in draco format</returns>
         public static byte[] Encode(DracoPointCloud m)
         {
@@ -50,6 +51,10 @@ namespace Openize.Drako
         /// <returns>Bytes in draco format</returns>
         public static byte[] Encode(DracoPointCloud m, DracoEncodeOptions options)
         {
+            if (m == null)
+                throw new ArgumentNullException("m");
+            if (options == null)
+                throw new ArgumentNullException("options");
             var buf = EncodeImpl(m, options);
             if (buf.Data.Length == buf.Bytes)
                 return buf.Data;
@@ -62,6 +67,13 @@ namespace Openize.Drako
         }
         public static void Encode(DracoPointCloud m, DracoEncodeOptions options, Stream stream)
         {
+            if (m == null)
+                throw new ArgumentNullException("m");
+            if (options == null)
+                throw new ArgumentNullException("options");
+            if (stream == null)
+                throw new ArgumentNullException("stream");
+
             var buf = EncodeImpl(m, options);
             stream.Write(buf.Data, 0, buf.Bytes);
         }

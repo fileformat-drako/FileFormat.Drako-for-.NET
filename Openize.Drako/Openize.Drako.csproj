@@ -13,6 +13,7 @@
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <RepositoryUrl>https://github.com/openize-drako/Openize.Drako-for-.NET</RepositoryUrl>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 		<Optimize>false</Optimize>

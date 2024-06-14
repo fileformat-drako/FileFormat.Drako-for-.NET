@@ -74,6 +74,14 @@ namespace Openize.Drako
             //return tmp[corner % 3];
         }
 
+        public void ReadFace(int faceId, int[] face)
+        {
+            var ptr = faceId * 3;
+            face[0] = faces[ptr++];
+            face[1] = faces[ptr++];
+            face[2] = faces[ptr++];
+
+        }
         public void ReadFace(int faceId, Span<int> face)
         {
             var ptr = faceId * 3;

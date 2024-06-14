@@ -31,8 +31,8 @@ namespace Openize.Drako.Utils
             if (BitConverter.IsLittleEndian)
             {
 #if CSPORTER
-                ushort val = (ushort)(arr[off + 1]);
-                val |= arr[off] << 8;
+                ushort val = (ushort)(arr[off + 1] << 8);
+                val |= arr[off];
                 return val;
 #else
                 fixed (byte* p = arr)
@@ -43,8 +43,8 @@ namespace Openize.Drako.Utils
             }
             else
             {
-                ushort val = (ushort)(arr[off + 1] << 8);
-                val |= arr[off];
+                ushort val = (ushort)(arr[off] << 8);
+                val |= arr[off + 1];
                 return val;
             }
         }
@@ -62,10 +62,10 @@ namespace Openize.Drako.Utils
             if(BitConverter.IsLittleEndian)
             {
 #if CSPORTER
-                    uint val = (uint)(arr[off + 3] << 0);
-                    val |= (uint)(arr[off + 2] << 8);
-                    val |= (uint)(arr[off + 1] << 16);
-                    val |= arr[off + 0] << 24;
+                    uint val = (uint)(arr[off + 0] << 0);
+                    val |= (uint)(arr[off + 1] << 8);
+                    val |= (uint)(arr[off + 2] << 16);
+                    val |= arr[off + 3] << 24;
                     return val;
 #else
                 fixed (byte* p = arr)
@@ -78,10 +78,10 @@ namespace Openize.Drako.Utils
             {
                 unchecked
                 {
-                    uint val = (uint)(arr[off + 3] << 24);
-                    val |= (uint)(arr[off + 2] << 16);
-                    val |= (uint)(arr[off + 1] << 8);
-                    val |= arr[off + 0];
+                    uint val = (uint)(arr[off + 0] << 24);
+                    val |= (uint)(arr[off + 1] << 16);
+                    val |= (uint)(arr[off + 2] << 8);
+                    val |= arr[off + 3];
                     return val;
                 }
             }
@@ -95,14 +95,14 @@ namespace Openize.Drako.Utils
             {
 #if CSPORTER
                 long val = 0;
-                val |= ((long)arr[off + 0] << 56);
-                val |= ((long)arr[off + 1] << 48);
-                val |= ((long)arr[off + 2] << 40);
-                val |= ((long)arr[off + 3] << 32);
-                val |= ((long)arr[off + 4] << 24);
-                val |= ((long)arr[off + 5] << 16);
-                val |= ((long)arr[off + 6] << 8);
-                val |= ((long)arr[off + 7] << 0);
+                val |= ((long)arr[off + 7] << 56);
+                val |= ((long)arr[off + 6] << 48);
+                val |= ((long)arr[off + 5] << 40);
+                val |= ((long)arr[off + 4] << 32);
+                val |= ((long)arr[off + 3] << 24);
+                val |= ((long)arr[off + 2] << 16);
+                val |= ((long)arr[off + 1] << 8);
+                val |= ((long)arr[off + 0] << 0);
                 return val;
 #else
                 fixed (byte* p = arr)
@@ -115,15 +115,15 @@ namespace Openize.Drako.Utils
             {
 #pragma warning disable 0675
                 long val = 0;
-                val |= ((long)arr[off + 7] << 56);
-                val |= ((long)arr[off + 6] << 48);
-                val |= ((long)arr[off + 5] << 40);
-                val |= ((long)arr[off + 4] << 32);
-                val |= ((long)arr[off + 3] << 24);
-                val |= ((long)arr[off + 2] << 16);
-                val |= ((long)arr[off + 1] << 8);
+                val |= ((long)arr[off + 0] << 56);
+                val |= ((long)arr[off + 1] << 48);
+                val |= ((long)arr[off + 2] << 40);
+                val |= ((long)arr[off + 3] << 32);
+                val |= ((long)arr[off + 4] << 24);
+                val |= ((long)arr[off + 5] << 16);
+                val |= ((long)arr[off + 6] << 8);
 #pragma warning restore 0675
-                val |= arr[off];
+                val |= arr[off + 7];
                 return (ulong)val;
             }
         }
@@ -217,7 +217,7 @@ namespace Openize.Drako.Utils
             if (ret.Length == 0)
                 return ret;
 #if CSPORTER
-            for(int i = 0, d = 0; i < array.Length; i += 4, d++)
+            for(int i = 0, d = 0; i < ret.Length; i += 4, d++)
             {
                 ret[d] = Unsafe.GetFloat(array, i);
             }

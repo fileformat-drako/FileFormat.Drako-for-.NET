@@ -45,10 +45,10 @@ namespace Openize.Drako.Encoder
                 // Store vertex indices using a smallest datatype that fits their range.
                 // TODO(ostava): This can be potentially improved by using a tighter
                 // fit that is not bound by a bit-length of any particular data type.
+                Span<int> face = stackalloc int[3];
                 if (Mesh.NumPoints < 256)
                 {
                     // Serialize indices as uint8T.
-                    var face = new int[3];
                     for (int i = 0; i < numFaces; ++i)
                     {
                         Mesh.ReadFace(i, face);
@@ -60,7 +60,6 @@ namespace Openize.Drako.Encoder
                 else if (Mesh.NumPoints < (1 << 16))
                 {
                     // Serialize indices as uint16T.
-                    var face = new int[3];
                     for (int i = 0; i < numFaces; ++i)
                     {
                         Mesh.ReadFace(i, face);
@@ -72,7 +71,6 @@ namespace Openize.Drako.Encoder
                 else if (Mesh.NumPoints < (1 << 21))
                 {
                     // Serialize indices as varint.
-                    var face = new int[3];
                     for (int i = 0; i < numFaces; ++i)
                     {
                         Mesh.ReadFace(i, face);
@@ -84,7 +82,6 @@ namespace Openize.Drako.Encoder
                 else
                 {
                     // Serialize faces as uint (default).
-                    var face = new int[3];
                     for (int i = 0; i < numFaces; ++i)
                     {
                         Mesh.ReadFace(i, face);
@@ -118,10 +115,10 @@ namespace Openize.Drako.Encoder
             // Collect all indices to a buffer and encode them.
             // Each new indice is a difference from the previous value.
             int numFaces = Mesh.NumFaces;
-            Span<int> indicesBuffer = stackalloc int[3 * numFaces];
+            Span<int> indicesBuffer = new int[3 * numFaces];
             int lastIndexValue = 0;
             int p = 0;
-            var face = new int[3];
+            Span<int> face = stackalloc int[3];
             for (int i = 0; i < numFaces; ++i)
             {
                 Mesh.ReadFace(i, face);

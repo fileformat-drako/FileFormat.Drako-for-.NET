@@ -808,7 +808,7 @@ namespace Openize.Drako.Encoder
             if (att == null)
                 return null;
             int[,] faces = new int[mesh.NumFaces, 3];
-            var face = new int[3];
+            Span<int> face = stackalloc int[3];
             for (int i = 0; i < mesh.NumFaces; ++i)
             {
                 mesh.ReadFace(i, face);
@@ -828,7 +828,7 @@ namespace Openize.Drako.Encoder
         private CornerTable CreateCornerTableFromAllAttributes(DracoMesh mesh)
         {
             int[,] faces = new int[mesh.NumFaces, 3];
-            var face = new int[3];
+            Span<int> face = stackalloc int[3];
             for (int i = 0; i < mesh.NumFaces; ++i)
             {
                 mesh.ReadFace(i, face);
