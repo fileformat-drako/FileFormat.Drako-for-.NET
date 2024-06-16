@@ -113,14 +113,16 @@ namespace Openize.Drako.Encoder
 
         public void Encode(byte[] buffer, int length)
         {
-            Encode(buffer.AsSpan(), 0, length);
+            int offset = this.buffer.Length;
+            DebugBreak(length);
+            this.buffer.Length += length;
+            Array.Copy(buffer, 0, this.buffer.GetBuffer(), offset, length);
         }
         public void Encode(Span<byte> buffer, int start, int length)
         {
             int offset = this.buffer.Length;
             DebugBreak(length);
             this.buffer.Length += length;
-            //Array.Copy(buffer, start, this.buffer.GetBuffer(), offset, length);
             buffer.Slice(start, length).CopyTo(this.buffer.GetBuffer().AsSpan().Slice(offset));
         }
 
@@ -128,7 +130,7 @@ namespace Openize.Drako.Encoder
         private void DebugBreak(int len)
         {
             /*
-            int debugOffset = 0x3D;
+            int debugOffset = 29;
             int offset = this.buffer.Length;
             if (debugOffset >= offset && debugOffset < offset + len)
                 Debugger.Break();

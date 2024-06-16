@@ -87,14 +87,39 @@ namespace Openize.Drako
                 buffer: new DataBuffer(bytes) //construct a data buffer from Span<byte>, the number of the positions is calculated inside the constructor of PointAttribute
              );
         }
-#else
         /// <summary>
-        /// Wrap Vector2 to PointAttribute
+        /// Wrap Vector3 to PointAttribute
         /// </summary>
         /// <param name="type">Attribute's type</param>
         /// <param name="vectors">Attribute data</param>
         /// <returns></returns>
-        public static PointAttribute Wrap(AttributeType type, Vector2[] vectors)
+        public static PointAttribute Wrap(AttributeType type, int components, float[] values)
+        {
+
+#if CSPORTER
+            var bytes = new byte[4 * values.Length];
+            Unsafe.ToByteArray(values, 0, values.Length, bytes, 0);
+#else
+            var bytes = MemoryMarshal.AsBytes(values.AsSpan());
+#endif
+
+            return new PointAttribute(
+                type: type,
+                dataType: DataType.FLOAT32, components: components, 
+                normalized: false,
+                byteStride: -1, // -1 means auto infer the stride from data type
+                byteOffset: 0, //offset in the buffer to the first position
+                buffer: new DataBuffer(bytes) //construct a data buffer from Span<byte>, the number of the positions is calculated inside the constructor of PointAttribute
+             );
+        }
+#else
+            /// <summary>
+            /// Wrap Vector2 to PointAttribute
+            /// </summary>
+            /// <param name="type">Attribute's type</param>
+            /// <param name="vectors">Attribute data</param>
+            /// <returns></returns>
+            public static PointAttribute Wrap(AttributeType type, Vector2[] vectors)
         {
             var bytes = new byte[4 * 2 * vectors.Length];
             for(int i = 0, p = 0; i < vectors.Length; i++)

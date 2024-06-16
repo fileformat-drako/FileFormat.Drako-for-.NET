@@ -134,8 +134,8 @@ namespace Openize.Drako.Utils
             if (BitConverter.IsLittleEndian)
             {
 #if CSPORTER
-                arr[off + 1] = (byte)((val >> 0) & 0xff);
-                arr[off + 0] = (byte)((val >> 8) & 0xff);
+                arr[off + 1] = (byte)((val >> 8) & 0xff);
+                arr[off + 0] = (byte)((val >> 0) & 0xff);
 #else
                 fixed (byte* p = arr)
                 {
@@ -145,8 +145,8 @@ namespace Openize.Drako.Utils
             }
             else
             {
-                arr[off] = (byte)((val >> 0) & 0xff);
-                arr[off + 1] = (byte)((val >> 8) & 0xff);
+                arr[off] = (byte)((val >> 8) & 0xff);
+                arr[off + 1] = (byte)((val >> 0) & 0xff);
             }
         }
 
