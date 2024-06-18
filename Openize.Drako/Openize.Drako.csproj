@@ -14,6 +14,9 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
         <RepositoryUrl>https://github.com/openize-drako/Openize.Drako-for-.NET</RepositoryUrl>
+        <PackageProjectUrl>https://www.openize.com</PackageProjectUrl>
+        <Authors>Openize</Authors>
+        <Copyright>(C) Openize Pty Ltd 2024. All Rights Reserved.</Copyright>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 		<Optimize>false</Optimize>
@@ -39,4 +42,9 @@
 		<None Include="..\README.md" Pack="true" PackagePath="\"/>
 		<None Include="..\LICENSE" Pack="true" PackagePath="\"/>
 	</ItemGroup>
+    <Target Name="SignAssembly" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Release'">
+        <Exec Command="$(SignTool) sign /fd sha256 /f $(CertFile) /p $(CertPassword) /t $(TimestamperUrl) %(IntermediateAssembly.FullPath)" />
+        <Exec Command="$(SignTool) verify /pa %(IntermediateAssembly.FullPath)" />
+
+    </Target>
 </Project>
