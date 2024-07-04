@@ -5,6 +5,7 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
 		<PackageId>FileFormat.Drako</PackageId>
+        <PackageIcon>icon.png</PackageIcon>
 		<Version>1.4.0</Version>
 		<PackageTags>Draco;Google Draco;3D;Compression;Openize;File Format</PackageTags>
 		<Description>
@@ -41,6 +42,7 @@
 	<ItemGroup>
 		<None Include="..\README.md" Pack="true" PackagePath="\"/>
 		<None Include="..\LICENSE" Pack="true" PackagePath="\"/>
+		<None Include="..\icon.png" Pack="true" PackagePath="\"/>
 	</ItemGroup>
     <Target Name="SignAssembly" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Release'">
         <Exec Command="$(SignTool) sign /fd sha256 /f $(CertFile) /p $(CertPassword) /t $(TimestamperUrl) %(IntermediateAssembly.FullPath)" />
