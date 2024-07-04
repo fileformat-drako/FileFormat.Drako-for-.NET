@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Openize.Drako.Utils
+namespace FileFormat.Drako.Utils
 {
     /// <summary>
     /// This simulates a byte pointer used in Draco implementation, also makes it easier to be ported to Java using CsPorter made by Lex Chou. 

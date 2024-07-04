@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Openize.Drako.Encoder
+namespace FileFormat.Drako.Encoder
 {
     /// <summary>
     /// Abstract base class for all point cloud and mesh encoders. It provides a

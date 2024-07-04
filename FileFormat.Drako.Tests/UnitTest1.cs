@@ -1,12 +1,12 @@
-using Openize.Drako;
-using Openize.Drako.Utils;
+using FileFormat.Drako;
+using FileFormat.Drako.Utils;
 using System.Buffers.Binary;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Openize.Drako.Tests;
+namespace FileFormat.Drako.Tests;
 
 [TestClass]
 public class UnitTest1

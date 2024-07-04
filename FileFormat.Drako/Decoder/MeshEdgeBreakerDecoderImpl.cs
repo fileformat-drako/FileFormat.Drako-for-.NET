@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Drako.Utils;
-using Openize.Drako.Compression;
+using FileFormat.Drako.Utils;
+using FileFormat.Drako.Compression;
 
-namespace Openize.Drako.Decoder
+namespace FileFormat.Drako.Decoder
 {
 
     interface ITraversalDecoder

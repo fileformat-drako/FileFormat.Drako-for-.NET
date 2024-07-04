@@ -1,7 +1,7 @@
-﻿using Openize.Drako.Decoder;
-using Openize.Drako.Utils;
+﻿using FileFormat.Drako.Decoder;
+using FileFormat.Drako.Utils;
 
-namespace Openize.Drako
+namespace FileFormat.Drako
 {
     class DracoHeader
     {

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Drako.Compression;
-using Openize.Drako.Encoder;
-using Openize.Drako.Utils;
+using FileFormat.Drako.Compression;
+using FileFormat.Drako.Encoder;
+using FileFormat.Drako.Utils;
 
-namespace Openize.Drako.Compression
+namespace FileFormat.Drako.Compression
 {
     partial class MeshPredictionSchemeGeometricNormal
     {

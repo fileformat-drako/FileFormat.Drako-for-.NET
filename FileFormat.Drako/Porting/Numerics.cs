@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Openize.Drako
+namespace FileFormat.Drako
 {
 #if CSPORTER
     public struct Vector2

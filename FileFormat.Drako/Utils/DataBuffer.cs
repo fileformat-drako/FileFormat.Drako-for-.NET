@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Openize.Drako.Utils
+namespace FileFormat.Drako.Utils
 {
     /// <summary>
     /// The differences between <see cref="DataBuffer"/> and <see cref="RawStreamReader"/> is that this encapsulates the random access of binary data.

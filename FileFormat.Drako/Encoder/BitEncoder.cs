@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Drako.Utils;
+using FileFormat.Drako.Utils;
 
-namespace Openize.Drako.Encoder
+namespace FileFormat.Drako.Encoder
 {
     class BitEncoder
     {

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Openize.Drako.Utils
+namespace FileFormat.Drako.Utils
 {
     unsafe class Unsafe
     {

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Openize.Drako.Utils;
+using FileFormat.Drako.Utils;
 
-namespace Openize.Drako.Compression
+namespace FileFormat.Drako.Compression
 {
     /// <summary>
     /// Parallelogram prediction predicts an attribute value V from three vertices

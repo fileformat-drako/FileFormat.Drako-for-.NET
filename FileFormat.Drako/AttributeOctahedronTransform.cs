@@ -4,10 +4,10 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using Openize.Drako.Encoder;
-using Openize.Drako.Utils;
+using FileFormat.Drako.Encoder;
+using FileFormat.Drako.Utils;
 
-namespace Openize.Drako
+namespace FileFormat.Drako
 {
     class AttributeOctahedronTransform : AttributeTransform
     {

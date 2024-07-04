@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Openize.Drako.Encoder
+namespace FileFormat.Drako.Encoder
 {
     interface ITraversalEncoder
     {
