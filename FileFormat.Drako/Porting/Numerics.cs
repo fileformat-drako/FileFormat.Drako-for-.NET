@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FileFormat.Drako
 {
-#if CSPORTER
+#if CSPORTER2
     public struct Vector2
     {
         public float X;

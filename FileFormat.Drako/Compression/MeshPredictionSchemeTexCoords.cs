@@ -200,17 +200,17 @@ namespace FileFormat.Drako.Compression
                 //
                 Vector3 pn = prevPos - nextPos;
                 Vector3 cn = tipPos - nextPos;
-                float pnNorm2Squared = Vector3.Dot(pn, pn);
+                var pnNorm2Squared = Vector3.Dot(pn, pn);
                 // Coordinate s of the tip corner C is simply the dot product of the
                 // normalized vectors |pn| and |cn| (normalized by the length of |pn|).
                 // Since both of these vectors are normalized, we don't need to perform the
                 // normalization explicitly and instead we can just use the squared norm
                 // of |pn| as a denominator of the resulting dot product of non normalized
                 // vectors.
-                float s = Vector3.Dot(pn, cn) / pnNorm2Squared;
+                var s = Vector3.Dot(pn, cn) / pnNorm2Squared;
                 // To get the coordinate t, we can use formula:
                 //      t = |C-N - (P-N) * s| / |P-N|
-                float t = (float) Math.Sqrt((cn - pn * s).LengthSquared() / pnNorm2Squared);
+                var t = (float) Math.Sqrt((cn - pn * s).LengthSquared() / pnNorm2Squared);
 
                 // Now we need to transform_ the point (s, t) to the texture coordinate space
                 // UV. We know the UV coordinates on points N and P (NUV and PUV). Lets
@@ -227,10 +227,10 @@ namespace FileFormat.Drako.Compression
                 // around the PNUV axis, we also need to consider point CUV' = M * (s, -t)
                 // as the prediction.
                 Vector2 pnUv = pUv - nUv;
-                float pnus = pnUv.X * s + nUv.X;
-                float pnut = pnUv.X * t;
-                float pnvs = pnUv.Y * s + nUv.Y;
-                float pnvt = pnUv.Y * t;
+                var pnus = pnUv.X * s + nUv.X;
+                var pnut = pnUv.X * t;
+                var pnvs = pnUv.Y * s + nUv.Y;
+                var pnvt = pnUv.Y * t;
                 Vector2 predictedUv;
                 if (isEncoder)
                 {

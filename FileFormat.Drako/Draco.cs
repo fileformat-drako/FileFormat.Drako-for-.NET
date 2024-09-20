@@ -37,7 +37,7 @@ namespace FileFormat.Drako
         /// <summary>
         /// Encode the point cloud or mesh and get the encoded bytes in draco format.
         /// </summary>
-        /// <param name="m">The <see cref="DracoPointCloud"/> or <see cref="DracoMesh"> instance </param>
+        /// <param name="m">The <see cref="DracoPointCloud"/> or <see cref="DracoMesh"/> instance </param>
         /// <returns>Bytes in draco format</returns>
         public static byte[] Encode(DracoPointCloud m)
         {
@@ -46,7 +46,7 @@ namespace FileFormat.Drako
         /// <summary>
         /// Encode the point cloud or mesh and get the encoded bytes in draco format.
         /// </summary>
-        /// <param name="m">The <see cref="DracoPointCloud"/> or <see cref="DracoMesh"> instance </param>
+        /// <param name="m">The <see cref="DracoPointCloud"/> or <see cref="DracoMesh"/> instance </param>
         /// <param name="options">Encode options</param>
         /// <returns>Bytes in draco format</returns>
         public static byte[] Encode(DracoPointCloud m, DracoEncodeOptions options)

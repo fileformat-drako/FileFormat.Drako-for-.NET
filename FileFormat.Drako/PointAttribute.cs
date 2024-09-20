@@ -113,19 +113,19 @@ namespace FileFormat.Drako
              );
         }
 #else
-            /// <summary>
-            /// Wrap Vector2 to PointAttribute
-            /// </summary>
-            /// <param name="type">Attribute's type</param>
-            /// <param name="vectors">Attribute data</param>
-            /// <returns></returns>
-            public static PointAttribute Wrap(AttributeType type, Vector2[] vectors)
+        /// <summary>
+        /// Wrap Vector2 to PointAttribute
+        /// </summary>
+        /// <param name="type">Attribute's type</param>
+        /// <param name="vectors">Attribute data</param>
+        /// <returns></returns>
+        public static PointAttribute Wrap(AttributeType type, Vector2[] vectors)
         {
             var bytes = new byte[4 * 2 * vectors.Length];
             for(int i = 0, p = 0; i < vectors.Length; i++)
             {
-                Unsafe.PutLE32(bytes, p, Unsafe.FloatToUInt32(vectors[i].X));
-                Unsafe.PutLE32(bytes, p + 4, Unsafe.FloatToUInt32(vectors[i].Y));
+                Unsafe.PutLE32(bytes, p, Unsafe.FloatToUInt32((float)vectors[i].X));
+                Unsafe.PutLE32(bytes, p + 4, Unsafe.FloatToUInt32((float)vectors[i].Y));
                 p += 8;
             }
             return new PointAttribute(
@@ -148,9 +148,9 @@ namespace FileFormat.Drako
             var bytes = new byte[4 * 3 * vectors.Length];
             for(int i = 0, p = 0; i < vectors.Length; i++)
             {
-                Unsafe.PutLE32(bytes, p, Unsafe.FloatToUInt32(vectors[i].X));
-                Unsafe.PutLE32(bytes, p + 4, Unsafe.FloatToUInt32(vectors[i].Y));
-                Unsafe.PutLE32(bytes, p + 8, Unsafe.FloatToUInt32(vectors[i].Z));
+                Unsafe.PutLE32(bytes, p, Unsafe.FloatToUInt32((float)vectors[i].X));
+                Unsafe.PutLE32(bytes, p + 4, Unsafe.FloatToUInt32((float)vectors[i].Y));
+                Unsafe.PutLE32(bytes, p + 8, Unsafe.FloatToUInt32((float)vectors[i].Z));
                 p += 12;
             }
             return new PointAttribute(

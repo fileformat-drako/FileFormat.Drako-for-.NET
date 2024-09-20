@@ -58,7 +58,7 @@ namespace FileFormat.Drako.Encoder
 // Converts a unit vector into octahedral coordinates (0-1 range).
         static void UnitVectorToOctahedralCoords(ref Vector3 vector, out float outS, out float outT)
         {
-            float absSum = Math.Abs(vector.X) + Math.Abs(vector.Y) + Math.Abs(vector.Z);
+            float absSum = (float)(Math.Abs(vector.X) + Math.Abs(vector.Y) + Math.Abs(vector.Z));
             Vector3 scaledVec = new Vector3();
             if (absSum > 1e-6)
             {
@@ -78,27 +78,27 @@ namespace FileFormat.Drako.Encoder
             if (scaledVec.X >= 0.0f)
             {
                 // Right hemisphere.
-                outS = (scaledVec.Y + 1.0f) * 0.5f;
-                outT = (scaledVec.Z + 1.0f) * 0.5f;
+                outS = (float)((scaledVec.Y + 1.0f) * 0.5f);
+                outT = (float)((scaledVec.Z + 1.0f) * 0.5f);
             }
             else
             {
                 // Left hemisphere.
                 if (scaledVec.Y < 0.0f)
                 {
-                    outS = 0.5f * Math.Abs(scaledVec.Z);
+                    outS = (float)(0.5f * Math.Abs(scaledVec.Z));
                 }
                 else
                 {
-                    outS = 0.5f * (2.0f - Math.Abs(scaledVec.Z));
+                    outS = (float)(0.5f * (2.0f - Math.Abs(scaledVec.Z)));
                 }
                 if (scaledVec.Z < 0.0f)
                 {
-                    outT = 0.5f * Math.Abs(scaledVec.Y);
+                    outT = (float)(0.5f * Math.Abs(scaledVec.Y));
                 }
                 else
                 {
-                    outT = 0.5f * (2.0f - Math.Abs(scaledVec.Y));
+                    outT = (float)(0.5f * (2.0f - Math.Abs(scaledVec.Y)));
                 }
             }
         }

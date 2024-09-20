@@ -63,7 +63,7 @@ namespace FileFormat.Drako.Decoder
             MetadataDecoder decoder = new MetadataDecoder();
             var metadata = decoder.Decode(buffer);
             pointCloud.Metadatas.Add(metadata);
-            return DracoUtils.Failed();
+            return true;
         }
 
         public bool SetAttributesDecoder(int attDecoderId, AttributesDecoder decoder)
