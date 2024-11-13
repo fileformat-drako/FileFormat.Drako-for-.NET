@@ -56,7 +56,7 @@ namespace FileFormat.Drako
         /// </summary>
         /// <param name="type">Attribute's type</param>
         /// <param name="vectors">Attribute data</param>
-        /// <returns></returns>
+        /// <returns>Instance of <see cref="PointAttribute"/> wrapped from the vectors.</returns>
         public static PointAttribute Wrap(AttributeType type, Span<Vector2> vectors)
         {
             var bytes = MemoryMarshal.AsBytes(vectors);
@@ -74,7 +74,7 @@ namespace FileFormat.Drako
         /// </summary>
         /// <param name="type">Attribute's type</param>
         /// <param name="vectors">Attribute data</param>
-        /// <returns></returns>
+        /// <returns>Instance of <see cref="PointAttribute"/> wrapped from the vectors.</returns>
         public static PointAttribute Wrap(AttributeType type, Span<Vector3> vectors)
         {
             var bytes = MemoryMarshal.AsBytes(vectors);
@@ -91,8 +91,9 @@ namespace FileFormat.Drako
         /// Wrap Vector3 to PointAttribute
         /// </summary>
         /// <param name="type">Attribute's type</param>
-        /// <param name="vectors">Attribute data</param>
-        /// <returns></returns>
+        /// <param name="components">Number of components of Attribute's type</param>
+        /// <param name="values">Attribute data</param>
+        /// <returns>Instance of <see cref="PointAttribute"/> wrapped from the vectors.</returns>
         public static PointAttribute Wrap(AttributeType type, int components, float[] values)
         {
 
@@ -118,7 +119,7 @@ namespace FileFormat.Drako
         /// </summary>
         /// <param name="type">Attribute's type</param>
         /// <param name="vectors">Attribute data</param>
-        /// <returns></returns>
+        /// <returns>Instance of <see cref="PointAttribute"/> wrapped from the vectors.</returns>
         public static PointAttribute Wrap(AttributeType type, Vector2[] vectors)
         {
             var bytes = new byte[4 * 2 * vectors.Length];
@@ -142,7 +143,7 @@ namespace FileFormat.Drako
         /// </summary>
         /// <param name="type">Attribute's type</param>
         /// <param name="vectors">Attribute data</param>
-        /// <returns></returns>
+        /// <returns>Instance of <see cref="PointAttribute"/> wrapped from the vectors.</returns>
         public static PointAttribute Wrap(AttributeType type, Vector3[] vectors)
         {
             var bytes = new byte[4 * 3 * vectors.Length];
@@ -169,6 +170,8 @@ namespace FileFormat.Drako
         /// Fills outData with the raw value of the requested attribute entry.
         /// outData must be at least byteStride long.
         /// </summary>
+        /// <param name="attIndex">Index to the attribute entry</param>
+        /// <param name="outData">Byte array to receive the attribute entry value</param>
         public void GetValue(int attIndex, byte[] outData)
         {
             int bytePos = ByteOffset + ByteStride * attIndex;
@@ -234,7 +237,8 @@ namespace FileFormat.Drako
         /// <summary>
         /// Prepares the attribute storage for the specified number of entries.
         /// </summary>
-        /// <param name="numAttributeValues"></param>
+        /// <param name="numAttributeValues">Number of the attribute entries to preallocate</param>
+        /// <returns>true means successed.</returns>
         public bool Reset(int numAttributeValues)
         {
             if (buffer == null)
@@ -261,6 +265,7 @@ namespace FileFormat.Drako
         /// <summary>
         /// Sets the new number of unique attribute entries for the attribute.
         /// </summary>
+        /// <param name="newNumUniqueEntries">Number of unique entries</param>
         public void Resize(int newNumUniqueEntries)
         {
             numUniqueEntries = newNumUniqueEntries;
@@ -291,6 +296,7 @@ namespace FileFormat.Drako
         /// This function sets the mapping to be explicitly using the indicesMap
         /// array that needs to be initialized by the caller.
         /// </summary>
+        /// <param name="numPoints">Number of actual points</param>
         public void SetExplicitMapping(int numPoints)
         {
             var fillStart = 0;
@@ -309,6 +315,8 @@ namespace FileFormat.Drako
         /// <summary>
         /// Set an explicit map entry for a specific point index.
         /// </summary>
+        /// <param name="pointIndex">Index to the point</param>
+        /// <param name="entryIndex">Index to the attribute entry</param>
         public void SetPointMapEntry(int pointIndex,
             int entryIndex)
         {
@@ -429,9 +437,9 @@ namespace FileFormat.Drako
         /// <summary>
         /// Copy raw bytes from buffer with given offset to the attribute's internal buffer at specified element index
         /// </summary>
-        /// <param name="index"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
+        /// <param name="index">Index of the attribute entry</param>
+        /// <param name="buffer">Source raw bytes to copy from</param>
+        /// <param name="offset">Offset to the buffer</param>
         public void SetAttributeValue(int index, byte[] buffer, int offset)
         {
             int dstOffset = ByteOffset + ByteStride * index;

@@ -8,7 +8,12 @@ namespace FileFormat.Drako
     /// <summary>
     /// Draco metadata
     /// </summary>
-    public class Metadata
+#if DRACO_EMBED_MODE
+    internal
+#else
+    public
+#endif
+    class Metadata
     {
         /// <summary>
         /// Entries of the metadata
@@ -22,7 +27,12 @@ namespace FileFormat.Drako
     /// <summary>
     /// Metadata for geometries.
     /// </summary>
-    public class GeometryMetadata : Metadata
+#if DRACO_EMBED_MODE
+    internal
+#else
+    public
+#endif
+    class GeometryMetadata : Metadata
     {
         /// <summary>
         /// Meta data for attributes.

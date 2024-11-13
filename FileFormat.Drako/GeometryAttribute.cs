@@ -67,8 +67,10 @@ namespace FileFormat.Drako
 
         public AttributeType AttributeType { get; set; }
 
+        /// <summary>
         /// User defined 16-bit id that can be for example used to identify generic
         /// attributes. By default |customId| == 0.
+        /// </summary>
         public ushort UniqueId { get; set; }
 
 

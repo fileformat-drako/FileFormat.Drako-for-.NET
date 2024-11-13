@@ -66,12 +66,6 @@ namespace FileFormat.Drako
         public DracoCompressionLevel CompressionLevel { get; set; }
 
         /// <summary>
-        /// Apply <see cref="AssetInfo.UnitScaleFactor"/> to the mesh.
-        /// Default value is false.
-        /// </summary>
-        public bool ApplyUnitScale { get; set; }
-
-        /// <summary>
         /// Export the scene as point cloud, default value is false.
         /// </summary>
         public bool PointCloud { get; set; } 

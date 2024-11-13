@@ -40,6 +40,8 @@ namespace FileFormat.Drako
         /// <summary>
         /// Returns the number of named attributes of a given type.
         /// </summary>
+        /// <param name="type">What type of attribute to count, defined by <see cref="AttributeType"/></param>
+        /// <returns>The number of attributes in given type.</returns>
         public int NumNamedAttributes(AttributeType type)
         {
             int idx = (int) type;
@@ -52,6 +54,8 @@ namespace FileFormat.Drako
         /// Returns attribute id of the first named attribute with a given type or -1
         /// when the attribute is not used by the point cloud.
         /// </summary>
+        ///<param name="type">What type of attribute to find, defined by <see cref="AttributeType"/></param>
+        /// <returns>The id of the first named attribute in given type</returns>
         public int GetNamedAttributeId(AttributeType type)
         {
             return GetNamedAttributeId(type, 0);
@@ -60,6 +64,9 @@ namespace FileFormat.Drako
         /// <summary>
         /// Returns the id of the i-th named attribute of a given type.
         /// </summary>
+        ///<param name="type">What type of attribute to find, defined by <see cref="AttributeType"/></param>
+        /// <param name="i">Index of the attribute.</param>
+        /// <returns>The id of the first named attribute in given type</returns>
         public int GetNamedAttributeId(AttributeType type, int i)
         {
             int idx = (int) type;
@@ -76,6 +83,9 @@ namespace FileFormat.Drako
         /// <summary>
         /// Returns the i-th named attribute of a given type.
         /// </summary>
+        /// <param name="type">What type of attribute to find, defined by <see cref="AttributeType"/></param>
+        /// <param name="i">Index of the attribute.</param>
+        /// <returns>The instance of the i-th named attribute in given type</returns>
         public PointAttribute GetNamedAttribute(AttributeType type, int i = 0)
         {
             var id = GetNamedAttributeId(type, i);
@@ -87,6 +97,9 @@ namespace FileFormat.Drako
         /// <summary>
         /// Returns the named attribute of a given custom id.
         /// </summary>
+        /// <param name="type">What type of attribute to find, defined by <see cref="AttributeType"/></param>
+        /// <param name="customId">Custom id of the attribute.</param>
+        /// <returns>The instance of named attribute with given custom id</returns>
         public PointAttribute GetNamedAttributeByCustomId(
             AttributeType type, ushort customId)
         {
@@ -116,8 +129,8 @@ namespace FileFormat.Drako
         /// Adds a new attribute to the point cloud.
         /// Returns the attribute id.
         /// </summary>
-        /// <param name="pa"></param>
-        /// <returns></returns>
+        /// <param name="pa">The new attribute to be added</param>
+        /// <returns>The index of the new attribute.</returns>
         public virtual int AddAttribute(PointAttribute pa)
         {
             attributes.Add(pa);
@@ -144,6 +157,10 @@ namespace FileFormat.Drako
         /// values that are going to be stored in the newly created attribute.
         /// Returns attribute id of the newly created attribute.
         /// </summary>
+        /// <param name="att">The instance of attribte to be added</param>
+        /// <param name="identityMapping">Whether to use identity mapping between point indices and attribute value indices.</param>
+        /// <param name="numAttributeValues">Specify the number of attribute values that will be stored in the new attribute.</param>
+        /// <returns>The index of the new attribute.</returns>
         public int AddAttribute(GeometryAttribute att, bool identityMapping, int numAttributeValues)
         {
 
@@ -174,6 +191,7 @@ namespace FileFormat.Drako
         /// Deduplicates all attribute values (all attribute entries with the same
         /// value are merged into a single entry).
         /// </summary>
+        /// <returns>true if deduplication successed.</returns>
         public virtual bool DeduplicateAttributeValues()
         {
 

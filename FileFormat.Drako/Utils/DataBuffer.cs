@@ -7,7 +7,7 @@ using System.Text;
 namespace FileFormat.Drako.Utils
 {
     /// <summary>
-    /// The differences between <see cref="DataBuffer"/> and <see cref="RawStreamReader"/> is that this encapsulates the random access of binary data.
+    /// Heap version of Span.
     /// </summary>
 #if DRACO_EMBED_MODE
     internal
