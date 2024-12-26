@@ -76,7 +76,7 @@ namespace FileFormat.Drako.Encoder
             }
         }
 
-        public bool EncodePoints(int[][] array, int bit_length, EncoderBuffer buffer)
+        public void EncodePoints(int[][] array, int bit_length, EncoderBuffer buffer)
         {
             bit_length_ = (uint)bit_length;
             num_points_ = array.Length;
@@ -84,7 +84,7 @@ namespace FileFormat.Drako.Encoder
             buffer.Encode(bit_length_);
             buffer.Encode(num_points_);
             if (num_points_ == 0)
-                return true;
+                return ;
 
             numbers_encoder_.StartEncoding();
             remaining_bits_encoder_.StartEncoding();
@@ -98,7 +98,6 @@ namespace FileFormat.Drako.Encoder
             axis_encoder_.EndEncoding(buffer);
             half_encoder_.EndEncoding(buffer);
 
-            return true;
         }
 
         public void EncodeNumber(int nbits, uint value)

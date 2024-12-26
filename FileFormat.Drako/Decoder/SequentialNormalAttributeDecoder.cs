@@ -18,49 +18,44 @@ namespace FileFormat.Drako.Decoder
             return 2;
         }
 
-        public override bool Initialize(PointCloudDecoder decoder, int attributeId)
+        public override void Initialize(PointCloudDecoder decoder, int attributeId)
         {
-            if (!base.Initialize(decoder, attributeId))
-                return DracoUtils.Failed();
+            base.Initialize(decoder, attributeId);
             // Currently, this encoder works only for 3-component normal vectors.
             if (Attribute.ComponentsCount != 3)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             // Also the data type must be DTFLOAT32.
             if (Attribute.DataType != DataType.FLOAT32)
-                return DracoUtils.Failed();
-            return true;
+                throw DracoUtils.Failed();
         }
 
-        public override bool DecodeIntegerValues(int[] pointIds, DecoderBuffer inBuffer)
+        public override void DecodeIntegerValues(int[] pointIds, DecoderBuffer inBuffer)
         {
             byte quantizationBits;
             if (decoder.BitstreamVersion < 20)
             {
-                if (!inBuffer.Decode(out quantizationBits))
-                    return DracoUtils.Failed();
+                quantizationBits = inBuffer.DecodeU8();
                 this.quantizationBits = quantizationBits;
             }
-            return base.DecodeIntegerValues(pointIds, inBuffer);
+            base.DecodeIntegerValues(pointIds, inBuffer);
         }
 
-        public override bool DecodeDataNeededByPortableTransform(int[] pointIds, DecoderBuffer in_buffer)
+        public override void DecodeDataNeededByPortableTransform(int[] pointIds, DecoderBuffer in_buffer)
         {
             if (decoder.BitstreamVersion >= 20)
             {
 
                 // For newer file version, decode attribute transform data here.
-                byte quantization_bits;
-                if (!in_buffer.Decode(out quantization_bits))
-                    return false;
+                byte quantization_bits = in_buffer.DecodeU8();
                 quantizationBits = quantization_bits;
             }
 
             // Store the decoded transform data in portable attribute.
             AttributeOctahedronTransform octahedral_transform = new AttributeOctahedronTransform(quantizationBits);
-            return octahedral_transform.TransferToAttribute(PortableAttribute);
+            octahedral_transform.TransferToAttribute(PortableAttribute);
         }
 
-        protected override bool StoreValues(int numPoints)
+        protected override void StoreValues(int numPoints)
         {
             // Convert all quantized values back to floats.
             int maxQuantizedValue = (1 << quantizationBits) - 1;
@@ -81,7 +76,6 @@ namespace FileFormat.Drako.Decoder
                 Attribute.Buffer.Write(outBytePos, attVal);
                 outBytePos += entrySize;
             }
-            return true;
         }
 
         void OctaherdalCoordsToUnitVector(float inS, float inT, float[] outVector)

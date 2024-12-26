@@ -26,14 +26,13 @@ namespace FileFormat.Drako.Compression
             return AttributeType.Position;
         }
 
-        public override bool SetParentAttribute(PointAttribute att)
+        public override void SetParentAttribute(PointAttribute att)
         {
             if (att.AttributeType != AttributeType.Position)
-                return DracoUtils.Failed(); // Invalid attribute type.
+                throw DracoUtils.Failed(); // Invalid attribute type.
             if (att.ComponentsCount != 3)
-                return DracoUtils.Failed(); // Currently works only for 3 component positions.
+                throw DracoUtils.Failed(); // Currently works only for 3 component positions.
             predictor_.pos_attribute_  = att;
-            return true;
         }
 
         public override bool Initialized
@@ -42,16 +41,16 @@ namespace FileFormat.Drako.Compression
             {
 
                 if (!predictor_.IsInitialized)
-                    return DracoUtils.Failed();
+                    return false;
                 //if (!meshData.Initialized)
                 //    return DracoUtils.Failed();
                 if (!octahedron_tool_box_.IsInitialized)
-                    return DracoUtils.Failed();
+                    return false;
                 return true;
             }
         }
 
-        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override void ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             octahedron_tool_box_.SetQuantizationBits(((PredictionSchemeNormalOctahedronTransformBase) transform_).QuantizationBits);
             predictor_.entry_to_point_id_map_ = entryToPointIdMap;
@@ -88,28 +87,22 @@ namespace FileFormat.Drako.Compression
             }
 
             flip_normal_bit_decoder_.EndDecoding();
-            return true;
         }
 
-        public override bool DecodePredictionData(DecoderBuffer buffer)
+        public override void DecodePredictionData(DecoderBuffer buffer)
         {
-            if (!this.transform_.DecodeTransformData(buffer))
-                return DracoUtils.Failed();
+            this.transform_.DecodeTransformData(buffer);
 
             if (buffer.BitstreamVersion < 22)
             {
-                byte prediction_mode;
-                buffer.Decode(out prediction_mode);
+                byte prediction_mode = buffer.DecodeU8();
 
                 if (!predictor_.SetNormalPredictionMode((NormalPredictionMode) prediction_mode))
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
             }
 
             // Init normal flips.
-            if (!flip_normal_bit_decoder_.StartDecoding(buffer))
-                return DracoUtils.Failed();
-
-            return true;
+            flip_normal_bit_decoder_.StartDecoding(buffer);
         }
 
         public override PredictionSchemeMethod PredictionMethod

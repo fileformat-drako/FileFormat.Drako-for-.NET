@@ -17,60 +17,56 @@ namespace FileFormat.Drako.Decoder
         private float[] minValue;
         private float maxValueDif;
 
-        public override bool Initialize(PointCloudDecoder decoder, int attributeId)
+        public override void Initialize(PointCloudDecoder decoder, int attributeId)
         {
-            if (!base.Initialize(decoder, attributeId))
-                return DracoUtils.Failed();
+            base.Initialize(decoder, attributeId);
             PointAttribute attribute = decoder.PointCloud.Attribute(attributeId);
             // Currently we can quantize only floating point arguments.
             if (attribute.DataType != DataType.FLOAT32)
-                return DracoUtils.Failed();
-            return true;
+                throw DracoUtils.Failed();
         }
 
-        public override bool DecodeIntegerValues(int[] pointIds, DecoderBuffer inBuffer)
+        public override void DecodeIntegerValues(int[] pointIds, DecoderBuffer inBuffer)
         {
-            if(Decoder.BitstreamVersion < 20 && !DecodeQuantizedDataInfo())
-                return DracoUtils.Failed();
-            return base.DecodeIntegerValues(pointIds, inBuffer);
+            if (Decoder.BitstreamVersion < 20)
+            {
+                DecodeQuantizedDataInfo();
+            }
+            base.DecodeIntegerValues(pointIds, inBuffer);
         }
 
-        protected override bool StoreValues(int numValues)
+        protected override void StoreValues(int numValues)
         {
-            return DequantizeValues(numValues);
+            DequantizeValues(numValues);
         }
 
-        public override bool DecodeDataNeededByPortableTransform(int[] pointIds, DecoderBuffer in_buffer)
+        public override void DecodeDataNeededByPortableTransform(int[] pointIds, DecoderBuffer in_buffer)
         {
             if (Decoder.BitstreamVersion >= 20)
             {
                 // Decode quantization data here only for files with bitstream version 2.0+
-                if (!DecodeQuantizedDataInfo())
-                    return DracoUtils.Failed();
+                DecodeQuantizedDataInfo();
             }
             // Store the decoded transform data in portable attribute;
             var transform = new AttributeQuantizationTransform();
             transform.SetParameters(quantizationBits, minValue, attribute.ComponentsCount, maxValueDif);
-            return transform.TransferToAttribute(PortableAttribute);
+            transform.TransferToAttribute(PortableAttribute);
         }
 
-        private bool DecodeQuantizedDataInfo()
+        private void DecodeQuantizedDataInfo()
         {
             int numComponents = Attribute.ComponentsCount;
             minValue = new float[numComponents];
             if (!Decoder.Buffer.Decode(minValue))
-                return DracoUtils.Failed();
-            if (!Decoder.Buffer.Decode(out maxValueDif))
-                return DracoUtils.Failed();
-            byte quantizationBits;
-            if (!Decoder.Buffer.Decode(out quantizationBits) ||
-                quantizationBits > 31)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
+            maxValueDif = decoder.Buffer.DecodeF32();
+            byte quantizationBits = Decoder.Buffer.DecodeU8();
+            if (quantizationBits > 31)
+                throw DracoUtils.Failed();
             this.quantizationBits = quantizationBits;
-            return true;
         }
 
-        private bool DequantizeValues(int numValues)
+        private void DequantizeValues(int numValues)
         {
             // Convert all quantized values back to floats.
             int maxQuantizedValue = (1 << (quantizationBits)) - 1;
@@ -94,7 +90,6 @@ namespace FileFormat.Drako.Decoder
                 Attribute.Buffer.Write(outBytePos, attVal);
                 outBytePos += entrySize;
             }
-            return true;
         }
     }
 }

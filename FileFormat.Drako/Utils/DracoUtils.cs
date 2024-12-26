@@ -170,9 +170,9 @@ namespace FileFormat.Drako.Utils
             return r;
         }
 
-        public static bool Failed()
+        public static DrakoException Failed()
         {
-            return false;
+            return new DrakoException();
         }
 
         internal static ulong IntSqrt(ulong number)

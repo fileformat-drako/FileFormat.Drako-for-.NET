@@ -11,11 +11,11 @@ namespace FileFormat.Drako.Encoder
             Init(cornerTable, traversal_observer);
         }
 
-        public override bool TraverseFromCorner(int corner_id)
+        public override void TraverseFromCorner(int corner_id)
         {
 
             if (this.IsCornerVisited(corner_id))
-                return true;  // Already traversed.
+                return;  // Already traversed.
 
             corner_traversal_stack_.Clear();
             corner_traversal_stack_.Add(corner_id);
@@ -26,7 +26,7 @@ namespace FileFormat.Drako.Encoder
             int prev_vert =
                 this.corner_table_.Vertex(this.corner_table_.Previous(corner_id));
             if (next_vert == -1 || prev_vert == -1)
-                return false;
+                throw DracoUtils.Failed();
             if (!this.IsVertexVisited(next_vert))
             {
                 this.MarkVertexVisited(next_vert);
@@ -59,7 +59,7 @@ namespace FileFormat.Drako.Encoder
                     this.traversal_observer_.OnNewFaceVisited(face_id);
                     int vert_id = this.corner_table_.Vertex(corner_id);
                     if (vert_id == -1)
-                        return false;
+                        throw DracoUtils.Failed();
                     if (!this.IsVertexVisited(vert_id))
                     {
                         bool on_boundary = this.corner_table_.IsOnBoundary(vert_id);
@@ -127,7 +127,6 @@ namespace FileFormat.Drako.Encoder
                     }
                 }
             }
-            return true;
         }
         public override void OnTraversalStart()
         {

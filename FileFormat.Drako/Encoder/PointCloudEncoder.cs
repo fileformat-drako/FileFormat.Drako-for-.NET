@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FileFormat.Drako.Utils;
 
 namespace FileFormat.Drako.Encoder
 {
@@ -42,7 +43,7 @@ namespace FileFormat.Drako.Encoder
         /// <summary>
         /// The main entry point that encodes provided point cloud.
         /// </summary>
-        public bool Encode(DracoEncodeOptions options, EncoderBuffer outBuffer)
+        public void Encode(DracoEncodeOptions options, EncoderBuffer outBuffer)
         {
 
             this.options = options;
@@ -54,16 +55,11 @@ namespace FileFormat.Drako.Encoder
             attributesEncoderIdsOrder = null;
 
             if (pointCloud == null)
-                return false;
-            if (!InitializeEncoder())
-                return false;
-            if (!EncodeEncoderData())
-                return false;
-            if (!EncodeGeometryData())
-                return false;
-            if (!EncodePointAttributes())
-                return false;
-            return true;
+                throw DracoUtils.Failed();
+            InitializeEncoder();
+            EncodeEncoderData();
+            EncodeGeometryData();
+            EncodePointAttributes();
         }
 
         public virtual EncodedGeometryType GeometryType
@@ -135,25 +131,22 @@ namespace FileFormat.Drako.Encoder
         /// Can be implemented by derived classes to perform any custom initialization
         /// of the encoder. Called in the Encode() method.
         /// </summary>
-        protected virtual bool InitializeEncoder()
+        protected virtual void InitializeEncoder()
         {
-            return true;
         }
 
         /// <summary>
         /// Should be used to encode any encoder-specific data.
         /// </summary>
-        protected virtual bool EncodeEncoderData()
+        protected virtual void EncodeEncoderData()
         {
-            return true;
         }
 
         /// <summary>
         /// Encodes any global geometry data (such as the number of points).
         /// </summary>
-        protected virtual bool EncodeGeometryData()
+        protected virtual void EncodeGeometryData()
         {
-            return true;
         }
 
         /// <summary>
@@ -162,11 +155,10 @@ namespace FileFormat.Drako.Encoder
         /// |buffer|.
         /// Returns false if the encoding failed.
         /// </summary>
-        protected virtual bool EncodePointAttributes()
+        protected virtual void EncodePointAttributes()
         {
 
-            if (!GenerateAttributesEncoders())
-                return false;
+            GenerateAttributesEncoders();
 
             // Encode the number of attribute encoders.
             buffer.Encode((byte) (attributesEncoders.Count));
@@ -175,21 +167,18 @@ namespace FileFormat.Drako.Encoder
             // dependencies, no data is encoded in this step).
             foreach (var attEnc in attributesEncoders)
             {
-                if (!attEnc.Initialize(this, pointCloud))
-                    return false;
+                attEnc.Initialize(this, pointCloud);
             }
 
             // Rearrange attributes to respect dependencies between individual attributes.
-            if (!RearrangeAttributesEncoders())
-                return false;
+            RearrangeAttributesEncoders();
 
             // Encode any data that is necessary to create the corresponding attribute
             // decoder.
             for (int i = 0; i < attributesEncoderIdsOrder.Length; i++)
             {
                 int attEncoderId = attributesEncoderIdsOrder[i];
-                if (!EncodeAttributesEncoderIdentifier(attEncoderId))
-                    return false;
+                EncodeAttributesEncoderIdentifier(attEncoderId);
             }
 
             // Also encode any attribute encoder data (such as the info about encoded
@@ -197,15 +186,12 @@ namespace FileFormat.Drako.Encoder
             for (int i = 0; i < attributesEncoderIdsOrder.Length; i++)
             {
                 int attEncoderId = attributesEncoderIdsOrder[i];
-                if (!attributesEncoders[attEncoderId].EncodeAttributesEncoderData(
-                    buffer))
-                    return false;
+                attributesEncoders[attEncoderId].EncodeAttributesEncoderData(
+                    buffer);
             }
 
             // Lastly encode all the attributes using the provided attribute encoders.
-            if (!EncodeAllAttributes())
-                return false;
-            return true;
+            EncodeAllAttributes();
         }
 
         /// <summary>
@@ -213,13 +199,12 @@ namespace FileFormat.Drako.Encoder
         /// point attribute data. Calls GenerateAttributesEncoder() for every attribute
         /// of the encoded PointCloud.
         /// </summary>
-        protected virtual bool GenerateAttributesEncoders()
+        protected virtual void GenerateAttributesEncoders()
         {
 
             for (int i = 0; i < pointCloud.NumAttributes; ++i)
             {
-                if (!GenerateAttributesEncoder(i))
-                    return false;
+                GenerateAttributesEncoder(i);
             }
             attributeToEncoderMap = new int[pointCloud.NumAttributes];
             for (int i = 0; i < attributesEncoders.Count; ++i)
@@ -229,7 +214,6 @@ namespace FileFormat.Drako.Encoder
                     attributeToEncoderMap[attributesEncoders[i].GetAttributeId(j)] = i;
                 }
             }
-            return true;
         }
 
         /// <summary>
@@ -239,31 +223,28 @@ namespace FileFormat.Drako.Encoder
         /// AddAttributeEncoder method, or 2. add the attribute to an existing
         /// attribute encoder (using AttributesEncoder::AddAttributeId() method).
         /// </summary>
-        protected abstract bool GenerateAttributesEncoder(int attId);
+        protected abstract void GenerateAttributesEncoder(int attId);
 
         /// <summary>
         /// Encodes any data that is necessary to recreate a given attribute encoder.
         /// Note: this is called in order in which the attribute encoders are going to
         /// be encoded.
         /// </summary>
-        protected virtual bool EncodeAttributesEncoderIdentifier(int attEncoderId)
+        protected virtual void EncodeAttributesEncoderIdentifier(int attEncoderId)
         {
-            return true;
         }
 
         /// <summary>
         /// Encodes all the attribute data using the created attribute encoders.
         /// </summary>
-        protected virtual bool EncodeAllAttributes()
+        protected virtual void EncodeAllAttributes()
         {
 
             for (int i = 0; i < attributesEncoderIdsOrder.Length; i++)
             {
                 int attEncoderId = attributesEncoderIdsOrder[i];
-                if (!attributesEncoders[attEncoderId].EncodeAttributes(buffer))
-                    return false;
+                attributesEncoders[attEncoderId].EncodeAttributes(buffer);
             }
-            return true;
         }
 
         /// <summary>
@@ -271,7 +252,7 @@ namespace FileFormat.Drako.Encoder
         /// underlying attribute dependencies. This ensures that the attributes are
         /// encoded in the correct order (parent attributes before their children).
         /// </summary>
-        private bool RearrangeAttributesEncoders()
+        private void RearrangeAttributesEncoders()
         {
 
             // Find the encoding order of the attribute encoders that is determined by
@@ -328,7 +309,7 @@ namespace FileFormat.Drako.Encoder
                 {
                     // No encoder was processed but there are still some remaining unprocessed
                     // encoders.
-                    return false;
+                    throw DracoUtils.Failed();
                 }
             }
 
@@ -382,13 +363,12 @@ namespace FileFormat.Drako.Encoder
                     {
                         // No attribute was processed but there are still some remaining
                         // unprocessed attributes.
-                        return false;
+                        throw DracoUtils.Failed();
                     }
                 }
                 // Update the order of the attributes within the encoder.
                 attributesEncoders[ae].SetAttributeIds(attributeEncodingOrder);
             }
-            return true;
         }
 
         public PointAttribute GetPortableAttribute(int parent_att_id)

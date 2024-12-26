@@ -11,7 +11,7 @@ namespace FileFormat.Drako.Decoder
         /// Sets |sourceBuffer| as the buffer to decode bits from.
         /// Returns false when the data is invalid.
         /// </summary>
-        bool StartDecoding(DecoderBuffer sourceBuffer);
+        void StartDecoding(DecoderBuffer sourceBuffer);
 
         uint DecodeLeastSignificantBits32(int nbits);
         bool DecodeNextBit();

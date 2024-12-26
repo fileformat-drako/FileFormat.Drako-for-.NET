@@ -19,15 +19,14 @@ namespace FileFormat.Drako.Decoder
 
 
         // Sets |source_buffer| as the buffer to decode bits from.
-        public bool StartDecoding(DecoderBuffer source_buffer)
+        public void StartDecoding(DecoderBuffer source_buffer)
         {
             for (int i = 0; i < 32; i++)
             {
-                if (!folded_number_decoders_[i].StartDecoding(source_buffer))
-                    return false;
+                folded_number_decoders_[i].StartDecoding(source_buffer);
             }
 
-            return bit_decoder_.StartDecoding(source_buffer);
+            bit_decoder_.StartDecoding(source_buffer);
         }
 
         // Decode one bit. Returns true if the bit is a 1, otherwise false.

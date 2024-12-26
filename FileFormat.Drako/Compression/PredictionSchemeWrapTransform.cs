@@ -153,22 +153,18 @@ namespace FileFormat.Drako.Compression
             return clampedValue.AsSpan();
         }
 
-        public override bool EncodeTransformData(EncoderBuffer buffer)
+        public override void EncodeTransformData(EncoderBuffer buffer)
         {
             // Store the input value range as it is needed by the decoder.
             buffer.Encode(minValue);
             buffer.Encode(maxValue);
-            return true;
         }
 
-        public override bool DecodeTransformData(DecoderBuffer buffer)
+        public override void DecodeTransformData(DecoderBuffer buffer)
         {
-            if (!buffer.Decode(out minValue))
-                return false;
-            if (!buffer.Decode(out maxValue))
-                return false;
+            minValue = buffer.DecodeI32();
+            maxValue = buffer.DecodeI32();
             InitCorrectionBounds();
-            return true;
         }
     }
 }

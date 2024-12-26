@@ -14,15 +14,14 @@ namespace FileFormat.Drako
         private int center_value_ = -1;
 
 
-        public bool SetQuantizationBits(int q)
+        public void SetQuantizationBits(int q)
         {
             if (q < 2 || q > 30)
-                return DracoUtils.Failed();
+                throw new ArgumentException("Invalid quantization parameters");
             quantization_bits_ = q;
             max_quantized_value_ = (1 << quantization_bits_) - 1;
             max_value_ = max_quantized_value_ - 1;
             center_value_ = max_value_ / 2;
-            return true;
         }
 
         public bool IsInitialized => quantization_bits_ != -1;

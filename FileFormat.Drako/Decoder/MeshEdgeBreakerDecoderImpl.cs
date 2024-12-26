@@ -37,7 +37,7 @@ namespace FileFormat.Drako.Decoder
         /// Returns a buffer decoder that points to data that was encoded after the
         /// traversal.
         /// </summary>
-        bool Start(out DecoderBuffer outBuffer);
+        DecoderBuffer Start();
         void Done();
         /// <summary>
         /// Returns the next edgebreaker symbol that was reached during the traversal.
@@ -236,10 +236,9 @@ namespace FileFormat.Drako.Decoder
             this.traversalDecoder = traversalDecoder;
         }
 
-        public bool Init(MeshEdgeBreakerDecoder decoder)
+        public void Init(MeshEdgeBreakerDecoder decoder)
         {
             this.decoder = decoder;
-            return true;
         }
 
         public MeshAttributeCornerTable GetAttributeCornerTable(int attId)
@@ -276,28 +275,24 @@ namespace FileFormat.Drako.Decoder
             return posEncodingData;
         }
 
-        public bool CreateAttributesDecoder(int attDecoderId)
+        public void CreateAttributesDecoder(int attDecoderId)
         {
 
-            sbyte attDataId;
-            if (!decoder.Buffer.Decode(out attDataId))
-                return DracoUtils.Failed();
-            byte decoderType;
-            if (!decoder.Buffer.Decode(out decoderType))
-                return DracoUtils.Failed();
+            sbyte attDataId = decoder.Buffer.DecodeI8();
+            byte decoderType = decoder.Buffer.DecodeU8();
 
             if (attDataId >= 0)
             {
                 if (attDataId >= attributeData.Length)
                 {
-                    return DracoUtils.Failed(); // Unexpected attribute data.
+                    throw DracoUtils.Failed(); // Unexpected attribute data.
                 }
                 attributeData[attDataId].decoderId = attDecoderId;
             }
             else
             {
                 if (posDataDecoderId >= 0)
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
                 posDataDecoderId = attDecoderId;
             }
 
@@ -305,9 +300,7 @@ namespace FileFormat.Drako.Decoder
             MeshTraversalMethod traversalMethod = MeshTraversalMethod.DepthFirst;
             if (decoder.BitstreamVersion >= 12)
             {
-                byte encoded;
-                if (!decoder.Buffer.Decode(out encoded))
-                    return DracoUtils.Failed();
+                byte encoded = decoder.Buffer.DecodeU8();
                 traversalMethod = (MeshTraversalMethod)encoded;
             }
 
@@ -344,7 +337,7 @@ namespace FileFormat.Drako.Decoder
                 else if (traversalMethod == MeshTraversalMethod.PredictionDegree)
                     attTraverser = new PredictionDegreeTraverser(attObserver);
                 else
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
 
                 traversalSequencer.SetTraverser(attTraverser);
                 sequencer = traversalSequencer;
@@ -353,7 +346,7 @@ namespace FileFormat.Drako.Decoder
             else
             {
                 if (attDataId < 0)
-                    return DracoUtils.Failed(); // Attribute data must be specified.
+                    throw DracoUtils.Failed(); // Attribute data must be specified.
 
                 // Per-corner attribute decoder.
                 //typedef CornerTableTraversalProcessor<MeshAttributeCornerTable> AttProcessor;
@@ -379,10 +372,9 @@ namespace FileFormat.Drako.Decoder
             var attController = new SequentialAttributeDecodersController(sequencer);
 
             decoder.SetAttributesDecoder(attDecoderId, attController);
-            return true;
         }
 
-        public bool DecodeConnectivity()
+        public void DecodeConnectivity()
         {
             numNewVertices = 0;
             newToParentVertexMap.Clear();
@@ -391,13 +383,11 @@ namespace FileFormat.Drako.Decoder
                 uint num_new_verts;
                 if (decoder.BitstreamVersion < 20)
                 {
-                    if (!decoder.Buffer.Decode(out num_new_verts))
-                        return DracoUtils.Failed();
+                    num_new_verts = decoder.Buffer.DecodeU32();
                 }
                 else
                 {
-                    if (!Decoding.DecodeVarint(out num_new_verts, decoder.Buffer))
-                        return DracoUtils.Failed();
+                    num_new_verts = Decoding.DecodeVarintU32(decoder.Buffer);
                 }
 
                 numNewVertices = (int) num_new_verts;
@@ -406,13 +396,11 @@ namespace FileFormat.Drako.Decoder
             uint numEncodedVertices;
             if (decoder.BitstreamVersion < 20)
             {
-                if (!decoder.Buffer.Decode(out numEncodedVertices))
-                    return DracoUtils.Failed();
+                numEncodedVertices = decoder.Buffer.DecodeU32();
             }
             else
             {
-                if (!Decoding.DecodeVarint(out numEncodedVertices, decoder.Buffer))
-                    return DracoUtils.Failed();
+                numEncodedVertices = Decoding.DecodeVarintU32(decoder.Buffer);
             }
 
             this.numEncodedVertices = (int)numEncodedVertices;
@@ -421,37 +409,31 @@ namespace FileFormat.Drako.Decoder
 
             if (decoder.BitstreamVersion < 20)
             {
-                if (!decoder.Buffer.Decode(out numFaces))
-                    return DracoUtils.Failed();
+                numFaces = decoder.Buffer.DecodeU32();
             }
             else
             {
-                if (!Decoding.DecodeVarint(out numFaces, decoder.Buffer))
-                    return DracoUtils.Failed();
+                numFaces = Decoding.DecodeVarintU32(decoder.Buffer);
             }
 
             if (numFaces > 805306367) //Upper limit of int32_t / 3
-                return DracoUtils.Failed();  // Draco cannot handle this many faces.
+                throw DracoUtils.Failed();  // Draco cannot handle this many faces.
 
             if (numEncodedVertices > numFaces * 3)
             {
-                return DracoUtils.Failed(); // There cannot be more vertices than 3 * numFaces.
+                throw DracoUtils.Failed(); // There cannot be more vertices than 3 * numFaces.
             }
 
-            byte numAttributeData;
-            if (!decoder.Buffer.Decode(out numAttributeData))
-                return DracoUtils.Failed();
+            byte numAttributeData = decoder.Buffer.DecodeU8();
 
             uint numEncodedSymbols;
             if (decoder.BitstreamVersion < 20)
             {
-                if (!decoder.Buffer.Decode(out numEncodedSymbols))
-                    return DracoUtils.Failed();
+                numEncodedSymbols = decoder.Buffer.DecodeU32();
             }
             else
             {
-                if (!Decoding.DecodeVarint(out numEncodedSymbols, decoder.Buffer))
-                    return DracoUtils.Failed();
+                numEncodedSymbols = Decoding.DecodeVarintU32(decoder.Buffer);
             }
 
             if (numFaces < numEncodedSymbols)
@@ -459,7 +441,7 @@ namespace FileFormat.Drako.Decoder
                 // Number of faces needs to be the same or greater than the number of
                 // symbols (it can be greater because the initial face may not be encoded as
                 // a symbol).
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             }
 
             uint max_encoded_faces = numEncodedSymbols + (numEncodedSymbols / 3);
@@ -468,24 +450,22 @@ namespace FileFormat.Drako.Decoder
                 // Faces can only be 1 1/3 times bigger than number of encoded symbols. This
                 // could only happen if all new encoded components started with interior
                 // triangles. E.g. A mesh with multiple tetrahedrons.
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             }
 
             uint numEncodedSplitSymbols;
             if (decoder.BitstreamVersion < 20)
             {
-                if (!decoder.Buffer.Decode(out numEncodedSplitSymbols))
-                    return DracoUtils.Failed();
+                numEncodedSplitSymbols = decoder.Buffer.DecodeU32();
             }
             else
             {
-                if (!Decoding.DecodeVarint(out numEncodedSplitSymbols, decoder.Buffer))
-                    return DracoUtils.Failed();
+                numEncodedSplitSymbols = Decoding.DecodeVarintU32(decoder.Buffer);
             }
 
             if (numEncodedSplitSymbols > numEncodedSymbols)
             {
-                return DracoUtils.Failed(); // Split symbols are a sub-set of all symbols.
+                throw DracoUtils.Failed(); // Split symbols are a sub-set of all symbols.
             }
 
 
@@ -493,8 +473,6 @@ namespace FileFormat.Drako.Decoder
             // Decode topology (connectivity).
             vertexTraversalLength.Clear();
             cornerTable = new CornerTable();
-            if (cornerTable == null)
-                return DracoUtils.Failed();
             processedCornerIds.Clear();
             processedCornerIds.Capacity = (int)numFaces;
             processedConnectivityCorners.Clear();
@@ -513,8 +491,7 @@ namespace FileFormat.Drako.Decoder
             attributeData = new AttributeData[numAttributeData];
 
 
-            if (!cornerTable.Reset((int)numFaces, (int)(numEncodedVertices + numEncodedSplitSymbols)))
-                return false;
+            cornerTable.Reset((int)numFaces, (int)(numEncodedVertices + numEncodedSplitSymbols));
 
             // Add one attribute data for each attribute decoder.
             for (int i = 0; i < attributeData.Length; i++)
@@ -537,43 +514,39 @@ namespace FileFormat.Drako.Decoder
                 uint encodedConnectivitySize;
                 if (decoder.BitstreamVersion < 20)
                 {
-                    if (!decoder.Buffer.Decode(out encodedConnectivitySize))
-                        return DracoUtils.Failed();
+                    encodedConnectivitySize = decoder.Buffer.DecodeU32();
                 }
                 else
                 {
-                    if (!Decoding.DecodeVarint(out encodedConnectivitySize, decoder.Buffer))
-                        return DracoUtils.Failed();
+                    encodedConnectivitySize = Decoding.DecodeVarintU32(decoder.Buffer);
                 }
 
                 if (encodedConnectivitySize == 0 ||
                     encodedConnectivitySize > decoder.Buffer.RemainingSize)
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
                 DecoderBuffer eventBuffer = decoder.Buffer.SubBuffer((int) encodedConnectivitySize); // new DecoderBuffer(buf, decoder.Buffer. decoder.Buffer.DecodedSize + encodedConnectivitySize, decoder.Buffer.BufferSize - decoder.Buffer.DecodedSize - encodedConnectivitySize);
 
                 // Decode hole and topology split events.
                 topologySplitDecodedBytes =
                     DecodeHoleAndTopologySplitEvents(eventBuffer);
                 if (topologySplitDecodedBytes == -1)
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
             }
             else
             {
                 if (DecodeHoleAndTopologySplitEvents(decoder.Buffer) == -1)
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
             }
 
             traversalDecoder.Init(this);
             traversalDecoder.SetNumEncodedVertices((int)(numEncodedVertices + numEncodedSplitSymbols));
             traversalDecoder.SetNumAttributeData(numAttributeData);
 
-            DecoderBuffer traversalEndBuffer;
-            if (!traversalDecoder.Start(out traversalEndBuffer))
-                return DracoUtils.Failed();
+            DecoderBuffer traversalEndBuffer = traversalDecoder.Start();
 
             int numConnectivityVerts = DecodeConnectivity((int)numEncodedSymbols);
             if (numConnectivityVerts == -1)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
 
             // Set the main buffer to the end of the traversal.
             decoder.Buffer = traversalEndBuffer.SubBuffer(0);// .Initialize(traversalEndBuffer.GetBuffer(), traversalEndBuffer.  traversalEndBuffer.remainingCount);
@@ -593,16 +566,14 @@ namespace FileFormat.Drako.Decoder
                 {
                     for (int ci = 0; ci < cornerTable.NumCorners; ci += 3)
                     {
-                        if (!DecodeAttributeConnectivitiesOnFaceLegacy(ci))
-                            return DracoUtils.Failed();
+                        DecodeAttributeConnectivitiesOnFaceLegacy(ci);
                     }
                 }
                 else
                 {
                     for (int ci = 0; ci < cornerTable.NumCorners; ci += 3)
                     {
-                        if (!DecodeAttributeConnectivitiesOnFace(ci))
-                            return DracoUtils.Failed();
+                        DecodeAttributeConnectivitiesOnFace(ci);
                     }
                 }
             }
@@ -640,13 +611,11 @@ namespace FileFormat.Drako.Decoder
                 attributeData[i].encodingData.vertexToEncodedAttributeValueIndexMap = new int[attConnectivityVerts];
             }
             if (!AssignPointsToCorners())
-                return DracoUtils.Failed();
-            return true;
+                throw DracoUtils.Failed();
         }
 
-        public bool OnAttributesDecoded()
+        public void OnAttributesDecoded()
         {
-            return true;
         }
 
         public MeshEdgeBreakerDecoder GetDecoder()
@@ -805,13 +774,11 @@ namespace FileFormat.Drako.Decoder
             uint numTopologySplits;
             if (decoder.BitstreamVersion < 20)
             {
-                if (!decoderBuffer.Decode(out numTopologySplits))
-                    return -1;
+                numTopologySplits = decoderBuffer.DecodeU32();
             }
             else
             {
-                if (!Decoding.DecodeVarint(out numTopologySplits, decoderBuffer))
-                    return -1;
+                numTopologySplits = Decoding.DecodeVarintU32(decoderBuffer);
             }
 
             if (numTopologySplits > 0)
@@ -824,13 +791,9 @@ namespace FileFormat.Drako.Decoder
                     for (int i = 0; i < numTopologySplits; ++i)
                     {
                         TopologySplitEventData eventData = new TopologySplitEventData();
-                        if (!decoderBuffer.Decode(out eventData.splitSymbolId))
-                            return -1;
-                        if (!decoderBuffer.Decode(out eventData.sourceSymbolId))
-                            return -1;
-                        byte edgeData;
-                        if (!decoderBuffer.Decode(out edgeData))
-                            return -1;
+                        eventData.splitSymbolId = decoderBuffer.DecodeI32();
+                        eventData.sourceSymbolId = decoderBuffer.DecodeI32();
+                        byte edgeData = decoderBuffer.DecodeU8();
                         eventData.sourceEdge = (byte)(edgeData & 1);
                         eventData.splitEdge = (byte)((edgeData >> 1) & 1);
                         topologySplitData.Add(eventData);
@@ -845,10 +808,9 @@ namespace FileFormat.Drako.Decoder
                     for (int i = 0; i < numTopologySplits; ++i)
                     {
                         TopologySplitEventData event_data = new TopologySplitEventData();
-                        uint delta;
-                        Decoding.DecodeVarint(out delta, decoderBuffer);
+                        uint delta = Decoding.DecodeVarintU32(decoderBuffer);
                         event_data.sourceSymbolId = (int)(delta + last_source_symbol_id);
-                        Decoding.DecodeVarint(out delta, decoderBuffer);
+                        delta = Decoding.DecodeVarintU32(decoderBuffer);
                         if (delta > event_data.sourceSymbolId)
                             return -1;
                         event_data.splitSymbolId = event_data.sourceSymbolId - (int)(delta);
@@ -857,8 +819,7 @@ namespace FileFormat.Drako.Decoder
                     }
 
                     // Split edges are decoded from a direct bit decoder.
-                    long tmp;
-                    decoderBuffer.StartBitDecoding(false, out tmp);
+                    long tmp = decoderBuffer.StartBitDecoding(false);
                     for (int i = 0; i < numTopologySplits; ++i)
                     {
                         uint edge_data;
@@ -881,13 +842,11 @@ namespace FileFormat.Drako.Decoder
             uint numHoleEvents = 0;
             if (decoder.BitstreamVersion < 20)
             {
-                if (!decoderBuffer.Decode(out numHoleEvents))
-                    return -1;
+                numHoleEvents = decoderBuffer.DecodeU32();
             }
             else if(decoder.BitstreamVersion < 21)
             {
-                if (!Decoding.DecodeVarint(out numHoleEvents, decoderBuffer))
-                    return -1;
+                numHoleEvents = Decoding.DecodeVarintU32(decoderBuffer);
             }
 
             if (numHoleEvents > 0)
@@ -897,8 +856,7 @@ namespace FileFormat.Drako.Decoder
                     for (uint i = 0; i < numHoleEvents; ++i)
                     {
                         HoleEventData eventData = new HoleEventData();
-                        if (!decoderBuffer.Decode(out eventData.symbolId))
-                            return -1;
+                        eventData.symbolId = decoderBuffer.DecodeI32();
                         holeEventData.Add(eventData);
                     }
                 }
@@ -910,8 +868,7 @@ namespace FileFormat.Drako.Decoder
                     for (int i = 0; i < numHoleEvents; ++i)
                     {
                         HoleEventData event_data = new HoleEventData();
-                        uint delta;
-                        Decoding.DecodeVarint(out delta, decoderBuffer);
+                        uint delta = Decoding.DecodeVarintU32(decoderBuffer);
                         event_data.symbolId = (int)(delta + last_symbol_id);
                         last_symbol_id = event_data.symbolId;
                         holeEventData.Add(event_data);
@@ -1374,14 +1331,12 @@ namespace FileFormat.Drako.Decoder
         /// Decodes all non-position attribute connectivities on the currently
         /// processed face.
         /// </summary>
-        private bool DecodeAttributeConnectivitiesOnFaceLegacy(int corner)
+        private void DecodeAttributeConnectivitiesOnFaceLegacy(int corner)
         {
             // Three corners of the face.
             DecodeAttributeConnectivitiesOnFaceLegacyImpl(corner);
             DecodeAttributeConnectivitiesOnFaceLegacyImpl(cornerTable.Next(corner));
             DecodeAttributeConnectivitiesOnFaceLegacyImpl(cornerTable.Previous(corner));
-
-            return true;
         }
         private void DecodeAttributeConnectivitiesOnFaceLegacyImpl(int corner)
         {
@@ -1408,7 +1363,7 @@ namespace FileFormat.Drako.Decoder
             }
         }
 
-        private bool DecodeAttributeConnectivitiesOnFace(int corner)
+        private void DecodeAttributeConnectivitiesOnFace(int corner)
         {
 
             // Three corners of the face.
@@ -1416,7 +1371,6 @@ namespace FileFormat.Drako.Decoder
             DecodeAttributeConnectivitiesOnFace(corner, src_face_id);
             DecodeAttributeConnectivitiesOnFace(cornerTable.Next(corner), src_face_id);
             DecodeAttributeConnectivitiesOnFace(cornerTable.Previous(corner), src_face_id);
-            return true;
         }
 
         private void DecodeAttributeConnectivitiesOnFace(int corner, int src_face_id)

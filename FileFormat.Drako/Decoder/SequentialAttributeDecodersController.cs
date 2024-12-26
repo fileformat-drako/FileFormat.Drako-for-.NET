@@ -16,68 +16,59 @@ namespace FileFormat.Drako.Decoder
             this.sequencer = sequencer;
         }
 
-        public override bool DecodeAttributesDecoderData(DecoderBuffer buffer)
+        public override void DecodeAttributesDecoderData(DecoderBuffer buffer)
         {
 
-            if (!base.DecodeAttributesDecoderData(buffer))
-                return DracoUtils.Failed();
+            base.DecodeAttributesDecoderData(buffer);
             // Decode unique ids of all sequential encoders and create them.
             sequentialDecoders = new SequentialAttributeDecoder[NumAttributes];
             for (int i = 0; i < NumAttributes; ++i)
             {
-                byte decoderType;
-                if (!buffer.Decode(out decoderType))
-                    return DracoUtils.Failed();
+                byte decoderType = buffer.DecodeU8();
                 // Create the decoder from the id.
                 sequentialDecoders[i] = CreateSequentialDecoder((SequentialAttributeEncoderType)decoderType);
                 if (sequentialDecoders[i] == null)
-                    return DracoUtils.Failed();
-                if (!sequentialDecoders[i].Initialize(Decoder, GetAttributeId(i)))
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
+                sequentialDecoders[i].Initialize(Decoder, GetAttributeId(i));
             }
-            return true;
         }
 
-        public override bool DecodeAttributes(DecoderBuffer buffer)
+        public override void DecodeAttributes(DecoderBuffer buffer)
         {
 
-            if (sequencer == null || !sequencer.GenerateSequence(out pointIds))
-                return DracoUtils.Failed();
+            if (sequencer == null)
+                throw DracoUtils.Failed();
+            pointIds = sequencer.GenerateSequence();
             // Initialize point to attribute value mapping for all decoded attributes.
             for (int i = 0; i < NumAttributes; ++i)
             {
                 PointAttribute pa = Decoder.PointCloud.Attribute(GetAttributeId(i));
-                if (!sequencer.UpdatePointToAttributeIndexMapping(pa))
-                    return DracoUtils.Failed();
+                sequencer.UpdatePointToAttributeIndexMapping(pa);
             }
-            return base.DecodeAttributes(buffer);
+            base.DecodeAttributes(buffer);
         }
 
-        protected override bool DecodePortableAttributes(DecoderBuffer buffer)
+        protected override void DecodePortableAttributes(DecoderBuffer buffer)
         {
             int num_attributes = NumAttributes;
             for (int i = 0; i < num_attributes; ++i)
             {
-                if (!sequentialDecoders[i].DecodePortableAttribute(pointIds, buffer))
-                    return DracoUtils.Failed();
+                sequentialDecoders[i].DecodePortableAttribute(pointIds, buffer);
             }
 
-            return true;
         }
 
-        protected override bool DecodeDataNeededByPortableTransforms(DecoderBuffer buffer)
+        protected override void DecodeDataNeededByPortableTransforms(DecoderBuffer buffer)
         {
             int num_attributes = NumAttributes;
             for (int i = 0; i < num_attributes; ++i)
             {
-                if (!sequentialDecoders[i].DecodeDataNeededByPortableTransform(pointIds, buffer))
-                    return DracoUtils.Failed();
+                sequentialDecoders[i].DecodeDataNeededByPortableTransform(pointIds, buffer);
             }
 
-            return true;
         }
 
-        protected override bool TransformAttributesToOriginalFormat()
+        protected override void TransformAttributesToOriginalFormat()
         {
             int num_attributes = NumAttributes;
             for (int i = 0; i < num_attributes; ++i)
@@ -101,11 +92,9 @@ namespace FileFormat.Drako.Decoder
                     }
                 }
 
-                if (!sequentialDecoders[i].TransformAttributeToOriginalFormat(pointIds))
-                    return DracoUtils.Failed();
+                sequentialDecoders[i].TransformAttributeToOriginalFormat(pointIds);
             }
 
-            return true;
         }
 
         protected virtual SequentialAttributeDecoder CreateSequentialDecoder(SequentialAttributeEncoderType decoderType)

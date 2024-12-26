@@ -49,18 +49,17 @@ namespace FileFormat.Drako.Encoder
         /// Note: no data should be encoded in this function, because the decoder may
         /// process encoders in a different order from the decoder.
         /// </summary>
-        public virtual bool Initialize(PointCloudEncoder encoder, DracoPointCloud pc)
+        public virtual void Initialize(PointCloudEncoder encoder, DracoPointCloud pc)
         {
 
             pointCloudEncoder = encoder;
             pointCloud = pc;
-            return true;
         }
 
         /// <summary>
         /// Encodes data needed by the target attribute decoder.
         /// </summary>
-        public virtual bool EncodeAttributesEncoderData(EncoderBuffer outBuffer)
+        public virtual void EncodeAttributesEncoderData(EncoderBuffer outBuffer)
         {
 
             // Encode data about all attributes.
@@ -75,7 +74,6 @@ namespace FileFormat.Drako.Encoder
                 outBuffer.Encode((byte) (pa.Normalized ? 1 : 0));
                 Encoding.EncodeVarint((ushort) (pa.UniqueId), outBuffer);
             }
-            return true;
         }
 
         /// <summary>
@@ -88,38 +86,32 @@ namespace FileFormat.Drako.Encoder
         /// Encode attribute data to the target buffer. Needs to be implmented by the
         /// derived classes.
         /// </summary>
-        public virtual bool EncodeAttributes(EncoderBuffer out_buffer)
+        public virtual void EncodeAttributes(EncoderBuffer out_buffer)
         {
 
-            if (!TransformAttributesToPortableFormat())
-              return false;
-            if (!EncodePortableAttributes(out_buffer))
-              return false;
+            TransformAttributesToPortableFormat();
+            EncodePortableAttributes(out_buffer);
             // Encode data needed by portable transforms after the attribute is encoded.
             // This corresponds to the order in which the data is going to be decoded by
             // the decoder.
-            if (!EncodeDataNeededByPortableTransforms(out_buffer))
-              return false;
-            return true;
+            EncodeDataNeededByPortableTransforms(out_buffer);
         }
 
   // Transforms the input attribute data into a form that should be losslessly
   // encoded (transform itself can be lossy).
-        protected virtual bool TransformAttributesToPortableFormat()
+        protected virtual void TransformAttributesToPortableFormat()
         {
-            return true;
         }
 
         // Losslessly encodes data of all portable attributes.
   // Precondition: All attributes must have been transformed into portable
   // format at this point (see TransformAttributesToPortableFormat() method).
-        protected abstract bool EncodePortableAttributes(EncoderBuffer out_buffer);
+        protected abstract void EncodePortableAttributes(EncoderBuffer out_buffer);
 
   // Encodes any data needed to revert the transform to portable format for each
   // attribute (e.g. data needed for dequantization of quantized values).
-        protected virtual bool EncodeDataNeededByPortableTransforms(EncoderBuffer out_buffer)
+        protected virtual void EncodeDataNeededByPortableTransforms(EncoderBuffer out_buffer)
         {
-            return true;
         }
 
         /// <summary>

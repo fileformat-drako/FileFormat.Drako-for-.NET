@@ -18,7 +18,7 @@ namespace FileFormat.Drako.Encoder
             return DracoEncodingMethod.Sequential;
         }
 
-        protected override bool EncodeConnectivity()
+        protected override void EncodeConnectivity()
         {
             // Serialize indices.
             int numFaces = Mesh.NumFaces;
@@ -89,10 +89,9 @@ namespace FileFormat.Drako.Encoder
                     }
                 }
             }
-            return true;
         }
 
-        protected override bool GenerateAttributesEncoder(int attId)
+        protected override void GenerateAttributesEncoder(int attId)
         {
             // Create only one attribute encoder that is going to encode all points in a
             // linear sequence.
@@ -107,7 +106,6 @@ namespace FileFormat.Drako.Encoder
                 // Reuse the existing attribute encoder for other attributes.
                 AttributesEncoder(0).AddAttributeId(attId);
             }
-            return true;
         }
 
         private bool CompressAndEncodeIndices()

@@ -39,43 +39,36 @@ namespace FileFormat.Drako.Decoder
             get { return geometryType; }
         }
 
-        public virtual bool Decode(DracoHeader header, DecoderBuffer buffer, DracoPointCloud result, bool decodeData)
+        public virtual void Decode(DracoHeader header, DecoderBuffer buffer, DracoPointCloud result, bool decodeData)
         {
             this.buffer = buffer;
             this.pointCloud = result;
             BitstreamVersion = header.version;
             if (header.version >= 13 && (header.flags & DracoHeader.MetadataFlagMask) == DracoHeader.MetadataFlagMask)
             {
-                if (!DecodeMetadata())
-                    return DracoUtils.Failed();
+                DecodeMetadata();
             }
-            if (!InitializeDecoder())
-                return DracoUtils.Failed();
-            if (!DecodeGeometryData())
-                return DracoUtils.Failed();
-            if (!DecodePointAttributes(decodeData))
-                return DracoUtils.Failed();
-            return true;
+            InitializeDecoder();
+            DecodeGeometryData();
+            DecodePointAttributes(decodeData);
         }
 
-        private bool DecodeMetadata()
+        private void DecodeMetadata()
         {
             MetadataDecoder decoder = new MetadataDecoder();
             var metadata = decoder.Decode(buffer);
             pointCloud.Metadatas.Add(metadata);
-            return true;
         }
 
-        public bool SetAttributesDecoder(int attDecoderId, AttributesDecoder decoder)
+        public void SetAttributesDecoder(int attDecoderId, AttributesDecoder decoder)
         {
             if (attDecoderId < 0)
-                return false;
+                throw DracoUtils.Failed();
             if (attDecoderId >= attributesDecoders.Length)
             {
                 Array.Resize(ref attributesDecoders, attDecoderId + 1);
             }
             attributesDecoders[attDecoderId] = decoder;
-            return true;
         }
 
         public AttributesDecoder[] AttributesDecoders
@@ -84,38 +77,31 @@ namespace FileFormat.Drako.Decoder
             
         }
 
-        protected virtual bool InitializeDecoder()
+        protected virtual void InitializeDecoder()
         {
-            return true;
         }
 
-        protected virtual bool DecodeGeometryData()
+        protected virtual void DecodeGeometryData()
         {
-            return true;
         }
 
-        protected bool DecodePointAttributes(bool decodeAttributeData)
+        protected void DecodePointAttributes(bool decodeAttributeData)
         {
-            byte numAttributesDecoders = 0;
-            if (!buffer.Decode(out numAttributesDecoders))
-                return DracoUtils.Failed();
+            byte numAttributesDecoders = buffer.DecodeU8();
             //create attributes decoders
             for (int i = 0; i < numAttributesDecoders; i++)
             {
-                if (!CreateAttributesDecoder(i))
-                    return DracoUtils.Failed();
+                CreateAttributesDecoder(i);
             }
             //initialize all decoders
             foreach(AttributesDecoder dec in attributesDecoders)
             {
-                if (!dec.Initialize(this, pointCloud))
-                    return DracoUtils.Failed();
+                dec.Initialize(this, pointCloud);
             }
             //decode data
             foreach (AttributesDecoder dec in attributesDecoders)
             {
-                if (!dec.DecodeAttributesDecoderData(buffer))
-                    return DracoUtils.Failed();
+                dec.DecodeAttributesDecoderData(buffer);
             }
 
   // Create map between attribute and decoder ids.
@@ -144,29 +130,23 @@ namespace FileFormat.Drako.Decoder
             //decode attributes
             if (decodeAttributeData)
             {
-                if (!DecodeAllAttributes())
-                    return DracoUtils.Failed();
+                DecodeAllAttributes();
             }
-                if (!OnAttributesDecoded())
-                    return DracoUtils.Failed();
-            return true;
+            OnAttributesDecoded();
         }
 
-        protected abstract bool CreateAttributesDecoder(int attrDecoderId);
+        protected abstract void CreateAttributesDecoder(int attrDecoderId);
         
 
-        protected virtual bool OnAttributesDecoded()
+        protected virtual void OnAttributesDecoded()
         {
-            return true;
         }
-        protected virtual bool DecodeAllAttributes()
+        protected virtual void DecodeAllAttributes()
         {
             foreach (AttributesDecoder dec in attributesDecoders)
             {
-                if (!dec.DecodeAttributes(buffer))
-                    return DracoUtils.Failed();
+                dec.DecodeAttributes(buffer);
             }
-            return true;
         }
 
         public DecoderBuffer Buffer

@@ -17,12 +17,12 @@ namespace FileFormat.Drako.Decoder
         {
 
         }
-        public override bool ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components, int[] entry_to_point_id_map)
+        public override void ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components, int[] entry_to_point_id_map)
         {
             throw new NotImplementedException();
         }
 
-        public override bool ComputeOriginalValues(Span<int> in_corr, Span<int> out_data, int size, int num_components,
+        public override void ComputeOriginalValues(Span<int> in_corr, Span<int> out_data, int size, int num_components,
             int[] entry_to_point_id_map)
         {
 
@@ -38,7 +38,6 @@ namespace FileFormat.Drako.Decoder
                     in_corr, i, out_data, i);
             }
 
-            return true;
         }
     }
 }

@@ -80,34 +80,28 @@ namespace FileFormat.Drako.Decoder
             half_decoder_ = new DirectBitDecoder();
         }
 
-        public bool DecodePoints(DecoderBuffer buffer, PointAttributeVectorOutputIterator oit)
+        public void DecodePoints(DecoderBuffer buffer, PointAttributeVectorOutputIterator oit)
         {
-            buffer.Decode(out bit_length_);
+            bit_length_ = buffer.DecodeI32();
             if (bit_length_ > 32)
-                return false;
-            buffer.Decode(out num_points_);
+                throw DracoUtils.Failed();
+            num_points_ = buffer.DecodeI32(); 
             if (num_points_ == 0)
-                return true;
+                return;
             num_decoded_points_ = 0;
 
-            if (!numbers_decoder_.StartDecoding(buffer))
-                return false;
-            if (!remaining_bits_decoder_.StartDecoding(buffer))
-                return false;
-            if (!axis_decoder_.StartDecoding(buffer))
-                return false;
-            if (!half_decoder_.StartDecoding(buffer))
-                return false;
+            numbers_decoder_.StartDecoding(buffer);
+            remaining_bits_decoder_.StartDecoding(buffer);
+            axis_decoder_.StartDecoding(buffer);
+            half_decoder_.StartDecoding(buffer);
 
-            if (!DecodeInternal(num_points_, oit))
-                return false;
+            DecodeInternal(num_points_, oit);
 
             numbers_decoder_.EndDecoding();
             remaining_bits_decoder_.EndDecoding();
             axis_decoder_.EndDecoding();
             half_decoder_.EndDecoding();
 
-            return true;
         }
 
         int GetAxis(int num_remaining_points, int[] levels, int last_axis)
@@ -135,7 +129,7 @@ namespace FileFormat.Drako.Decoder
             return best_axis;
         }
 
-        bool DecodeInternal(int num_points, PointAttributeVectorOutputIterator oit)
+        void DecodeInternal(int num_points, PointAttributeVectorOutputIterator oit)
         {
             base_stack_[0] = new int[dimension_];
             levels_stack_[0] = new int [dimension_];
@@ -156,11 +150,11 @@ namespace FileFormat.Drako.Decoder
                 var levels = levels_stack_[stack_pos];
 
                 if (num_remaining_points > num_points)
-                    return false;
+                    throw DracoUtils.Failed();
 
                 int axis = GetAxis(num_remaining_points, levels, last_axis);
                 if (axis >= dimension_)
-                    return false;
+                    throw DracoUtils.Failed();
 
                 int level = levels[axis];
 
@@ -211,7 +205,7 @@ namespace FileFormat.Drako.Decoder
                 }
 
                 if (num_decoded_points_ > num_points_)
-                    return false;
+                    throw DracoUtils.Failed();
 
                 num_remaining_bits = bit_length_ - level;
                 int modifier = 1 << (num_remaining_bits - 1);
@@ -244,7 +238,6 @@ namespace FileFormat.Drako.Decoder
                     status_stack.Push(new Status(second_half, axis, stack_pos + 1));
             }
 
-            return true;
         }
 
         private int DecodeNumber(int nbits)

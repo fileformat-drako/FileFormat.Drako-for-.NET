@@ -46,10 +46,10 @@ namespace FileFormat.Drako
         {
         }
 
-        public override bool TraverseFromCorner(int corner_id)
+        public override void TraverseFromCorner(int corner_id)
         {
             if (prediction_degree_.Length == 0)
-                return true;
+                return;
 
             // Traversal starts from the |corner_id|. It's going to follow either the
             // right or the left neighboring faces to |corner_id| based on their
@@ -167,8 +167,6 @@ namespace FileFormat.Drako
                     break;
                 }
             }
-
-            return true;
         }
 
 

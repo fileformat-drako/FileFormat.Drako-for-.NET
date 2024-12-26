@@ -132,22 +132,17 @@ namespace FileFormat.Drako.Compression
         }
 
 
-        public override bool DecodeTransformData(DecoderBuffer buffer)
+        public override void DecodeTransformData(DecoderBuffer buffer)
         {
-            int max_quantized_value, center_value;
-            if (!buffer.Decode(out max_quantized_value))
-                return false;
-            if (!buffer.Decode(out center_value))
-                return false;
+            int max_quantized_value = buffer.DecodeI32();
+            int center_value = buffer.DecodeI32();
 
-            if (!SetMaxQuantizedValue(max_quantized_value))
-                return false;
+            SetMaxQuantizedValue(max_quantized_value);
             // Account for reading wrong values, e.g., due to fuzzing.
             if (QuantizationBits < 2)
-                return false;
+                throw DracoUtils.Failed();
             if (QuantizationBits > 30)
-                return false;
-            return true;
+                throw DracoUtils.Failed();
         }
 
         public override void ComputeOriginalValue(Span<int> predictedVals, int predictedOffset, Span<int> corrVals,
@@ -198,11 +193,10 @@ namespace FileFormat.Drako.Compression
             return orig;
         }
 
-        public override bool EncodeTransformData(EncoderBuffer buffer)
+        public override void EncodeTransformData(EncoderBuffer buffer)
         {
             buffer.Encode(this.octahedronToolBox.MaxQuantizedValue);
             buffer.Encode(this.octahedronToolBox.CenterValue);
-            return true;
         }
         public override void ComputeCorrection(Span<int> originalVals, int originalOffset, Span<int> predictedVals,
             int predictedOffset, Span<int> outCorrVals, int outOffset, int valId)

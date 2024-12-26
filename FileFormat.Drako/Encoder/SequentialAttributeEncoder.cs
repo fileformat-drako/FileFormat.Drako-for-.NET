@@ -40,59 +40,51 @@ namespace FileFormat.Drako.Encoder
         /// attribute encoders are created and it should not be called explicitly from
         /// other places.
         /// </summary>
-        public virtual bool Initialize(PointCloudEncoder encoder, int attributeId)
+        public virtual void Initialize(PointCloudEncoder encoder, int attributeId)
         {
 
             this.encoder = encoder;
             attribute = encoder.PointCloud.Attribute(attributeId);
             this.attributeId = attributeId;
-            return true;
         }
 
         /// <summary>
         /// Intialization for a specific attribute. This can be used mostly for
         /// standalone encoding of an attribute without an PointCloudEncoder.
         /// </summary>
-        public virtual bool InitializeStandalone(PointAttribute attribute)
+        public virtual void InitializeStandalone(PointAttribute attribute)
         {
 
             this.attribute = attribute;
             attributeId = -1;
-            return true;
         }
 
-        public virtual bool TransformAttributeToPortableFormat(int[] point_ids)
+        public virtual void TransformAttributeToPortableFormat(int[] point_ids)
         {
             // Default implementation doesn't transform the input data.
-            return true;
         }
 
-        public virtual bool EncodePortableAttribute(int[] point_ids, EncoderBuffer out_buffer)
+        public virtual void EncodePortableAttribute(int[] point_ids, EncoderBuffer out_buffer)
         {
             // Lossless encoding of the input values.
-            if (!EncodeValues(point_ids, out_buffer))
-                return false;
-            return true;
+            EncodeValues(point_ids, out_buffer);
         }
 
-        public virtual bool EncodeDataNeededByPortableTransform(EncoderBuffer out_buffer)
+        public virtual void EncodeDataNeededByPortableTransform(EncoderBuffer out_buffer)
         {
             // Default implementation doesn't transform the input data.
-            return true;
         }
 
-        protected bool SetPredictionSchemeParentAttributes(PredictionScheme ps)
+        protected void SetPredictionSchemeParentAttributes(PredictionScheme ps)
         {
             for (int i = 0; i < ps.NumParentAttributes; ++i)
             {
                 int att_id = encoder.PointCloud.GetNamedAttributeId(ps.GetParentAttributeType(i));
                 if (att_id == -1)
-                    return false; // Requested attribute does not exist.
-                if (!ps.SetParentAttribute(encoder.GetPortableAttribute(att_id)))
-                    return false;
+                    throw DracoUtils.Failed(); // Requested attribute does not exist.
+                ps.SetParentAttribute(encoder.GetPortableAttribute(att_id));
             }
 
-            return true;
         }
 
         /// <summary>
@@ -102,8 +94,7 @@ namespace FileFormat.Drako.Encoder
         /// </summary>
         public bool Encode(int[] pointIds, EncoderBuffer outBuffer)
         {
-            if (!EncodeValues(pointIds, outBuffer))
-                return false;
+            EncodeValues(pointIds, outBuffer);
             if (isParentEncoder && IsLossyEncoder())
             {
                 if (!PrepareLossyAttributeData())
@@ -162,7 +153,7 @@ namespace FileFormat.Drako.Encoder
         /// Returns false when the initialization failed (in which case the scheme
         /// cannot be used).
         /// </summary>
-        protected virtual bool InitPredictionScheme(PredictionScheme ps)
+        protected virtual void InitPredictionScheme(PredictionScheme ps)
         {
 
             for (int i = 0; i < ps.NumParentAttributes; ++i)
@@ -170,18 +161,17 @@ namespace FileFormat.Drako.Encoder
                 int attId = encoder.PointCloud.GetNamedAttributeId(
                     ps.GetParentAttributeType(i));
                 if (attId == -1)
-                    return false; // Requested attribute does not exist.
+                    throw DracoUtils.Failed(); // Requested attribute does not exist.
                 parentAttributes.Add(attId);
                 encoder.MarkParentAttribute(attId);
             }
-            return true;
         }
 
         /// <summary>
         /// Encodes all attribute values in the specified order. Should be overriden
         /// for specialized  encoders.
         /// </summary>
-        protected virtual bool EncodeValues(int[] pointIds,
+        protected virtual void EncodeValues(int[] pointIds,
             EncoderBuffer outBuffer)
         {
 
@@ -194,7 +184,6 @@ namespace FileFormat.Drako.Encoder
                 attribute.GetValue(entryId, valueData);
                 outBuffer.Encode(valueData, entrySize);
             }
-            return true;
         }
 
         /// <summary>

@@ -32,17 +32,16 @@ namespace FileFormat.Drako.Compression
             return AttributeType.Position;
         }
 
-        public override bool SetParentAttribute(PointAttribute att)
+        public override void SetParentAttribute(PointAttribute att)
         {
             if (att.AttributeType != AttributeType.Position)
-                return false; // Invalid attribute type.
+                throw new ArgumentException(); // Invalid attribute type.
             if (att.ComponentsCount != 3)
-                return false; // Currently works only for 3 component positions.
+                throw new ArgumentException(); // Currently works only for 3 component positions.
             posAttribute = att;
-            return true;
         }
 
-        public override bool ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
+        public override void ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
         {
             this.numComponents = numComponents;
             this.entryToPointIdMap = entryToPointIdMap;
@@ -59,10 +58,9 @@ namespace FileFormat.Drako.Compression
                 int dstOffset = p * numComponents;
                 this.transform_.ComputeCorrection(inData, dstOffset, predictedValueSpan, 0, outCorr, 0, dstOffset);
             }
-            return true;
         }
 
-        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override void ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             this.numComponents = numComponents;
             this.entryToPointIdMap = entryToPointIdMap;
@@ -79,10 +77,9 @@ namespace FileFormat.Drako.Compression
                 int dstOffset = p * numComponents;
                 this.transform_.ComputeOriginalValue(predictedValueSpan, 0, inCorr, dstOffset, outData, dstOffset);
             }
-            return true;
         }
 
-        public override bool EncodePredictionData(EncoderBuffer buffer)
+        public override void EncodePredictionData(EncoderBuffer buffer)
         {
             // Encode the delta-coded orientations using arithmetic coding.
             int numOrientations = orientations.Count;
@@ -97,21 +94,18 @@ namespace FileFormat.Drako.Compression
                 lastOrientation = orientation;
             }
             encoder.EndEncoding(buffer);
-            return base.EncodePredictionData(buffer);
+            base.EncodePredictionData(buffer);
         }
 
-        public override bool DecodePredictionData(DecoderBuffer buffer)
+        public override void DecodePredictionData(DecoderBuffer buffer)
         {
             // Decode the delta coded orientations.
-            int numOrientations = 0;
-            if (!buffer.Decode(out numOrientations))
-                return false;
+            int numOrientations = buffer.DecodeI32();
             orientations.Clear();
             orientations.AddRange(new bool[numOrientations]);
             bool lastOrientation = true;
             RAnsBitDecoder decoder = new RAnsBitDecoder();
-            if (!decoder.StartDecoding(buffer))
-                return false;
+            decoder.StartDecoding(buffer);
             for (int i = 0; i < numOrientations; ++i)
             {
                 if (!decoder.DecodeNextBit())
@@ -119,7 +113,7 @@ namespace FileFormat.Drako.Compression
                 orientations[i] = lastOrientation;
             }
             decoder.EndDecoding();
-            return base.DecodePredictionData(buffer);
+            base.DecodePredictionData(buffer);
         }
 
         private Vector3 GetPositionForEntryId(int entryId)

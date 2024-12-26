@@ -19,20 +19,18 @@ namespace FileFormat.Drako
             this.numPoints = numPoints;
         }
 
-        public override bool UpdatePointToAttributeIndexMapping(PointAttribute attribute)
+        public override void UpdatePointToAttributeIndexMapping(PointAttribute attribute)
         {
             attribute.IdentityMapping = true;
-            return true;
         }
 
-        protected override bool GenerateSequenceInternal()
+        protected override void GenerateSequenceInternal()
         {
             outPointIds.Capacity = numPoints;
             for (int i = 0; i < numPoints; ++i)
             {
                 outPointIds.Add(i);
             }
-            return true;
         }
 
     }

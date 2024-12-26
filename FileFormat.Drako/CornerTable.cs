@@ -65,7 +65,7 @@ namespace FileFormat.Drako
             this.valenceCache = new ValenceCache(this);
         }
 
-        public bool Initialize(int[,] faces)
+        public void Initialize(int[,] faces)
         {
 
             valenceCache.ClearValenceCache();
@@ -82,11 +82,8 @@ namespace FileFormat.Drako
             }
 
             int numVertices = -1;
-            if (!ComputeOppositeCorners(out numVertices))
-                return DracoUtils.Failed();
-            if (!ComputeVertexCorners(numVertices))
-                return DracoUtils.Failed();
-            return true;
+            ComputeOppositeCorners(out numVertices);
+            ComputeVertexCorners(numVertices);
         }
 
         public int[] AllCorners(int face)
@@ -195,7 +192,7 @@ namespace FileFormat.Drako
             return Next(Opposite(Next(corner)));
         }
 
-        private bool ComputeOppositeCorners(out int numVertices)
+        private void ComputeOppositeCorners(out int numVertices)
         {
             oppositeCorners = new int[NumCorners];
             for (int i = 0; i < oppositeCorners.Length; i++)
@@ -321,10 +318,9 @@ namespace FileFormat.Drako
                 }
             }
             numVertices = numCornersOnVertices.Count;
-            return true;
         }
 
-        bool ComputeVertexCorners(int numVertices)
+        void ComputeVertexCorners(int numVertices)
         {
             numOriginalVertices = numVertices;
             vertexCorners.Resize(numVertices, kInvalidCornerIndex);
@@ -416,7 +412,6 @@ namespace FileFormat.Drako
                 if (!visitedVertices[i])
                     ++numIsolatedVertices;
             }
-            return true;
         }
 
         public bool IsDegenerated(int face)
@@ -564,12 +559,12 @@ namespace FileFormat.Drako
         }
 
         // Resets the corner table to the given number of invalid faces.
-        public bool Reset(int numFaces, int numVertices)
+        public void Reset(int numFaces, int numVertices)
         {
             if (numFaces < 0 || numVertices < 0)
-                return false;
+                throw new ArgumentException();
             if (numFaces > int.MaxValue / 3)
-                return false;
+                throw new ArgumentException();
             cornerToVertexMap = new int[numFaces * 3];
             oppositeCorners = new int[numFaces * 3];
             for (int i = 0; i < cornerToVertexMap.Length; i++)
@@ -580,7 +575,6 @@ namespace FileFormat.Drako
             vertexCorners.Capacity = numVertices;
             valenceCache.ClearValenceCache();
             valenceCache.ClearValenceCacheInaccurate();
-            return true;
         }
 
         public int ConfidentVertex(int corner)

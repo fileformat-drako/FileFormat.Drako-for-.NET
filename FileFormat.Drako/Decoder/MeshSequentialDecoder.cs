@@ -8,32 +8,25 @@ namespace FileFormat.Drako.Decoder
 {
     class MeshSequentialDecoder : MeshDecoder
     {
-        protected override bool DecodeConnectivity()
+        protected override void DecodeConnectivity()
         {
             uint numFaces;
             uint numPoints;
             if (BitstreamVersion < 22)
             {
-                if (!Buffer.Decode(out numFaces))
-                    return DracoUtils.Failed();
-                if (!Buffer.Decode(out numPoints))
-                    return DracoUtils.Failed();
+                numFaces = Buffer.DecodeU32();
+                numPoints = Buffer.DecodeU32();
             }
             else
             {
-                if (!Decoding.DecodeVarint(out numFaces, buffer))
-                    return false;
-                if (!Decoding.DecodeVarint(out numPoints, buffer))
-                    return false;
+                numFaces = Decoding.DecodeVarintU32(buffer);
+                numPoints = buffer.DecodeVarintU32();
             }
 
-            byte connectivityMethod;
-            if (!Buffer.Decode(out connectivityMethod))
-                return DracoUtils.Failed();
+            byte connectivityMethod = Buffer.DecodeU8();
             if (connectivityMethod == 0)
             {
-                if (!DecodeAndDecompressIndices((int)numFaces))
-                    return DracoUtils.Failed();
+                DecodeAndDecompressIndices((int)numFaces);
             }
             else
             {
@@ -45,9 +38,7 @@ namespace FileFormat.Drako.Decoder
                     {
                         for (int j = 0; j < 3; ++j)
                         {
-                            byte val;
-                            if (!Buffer.Decode(out val))
-                                return DracoUtils.Failed();
+                            byte val = buffer.DecodeU8();
                             face[j] = val;
                         }
                         Mesh.AddFace(face);
@@ -61,9 +52,7 @@ namespace FileFormat.Drako.Decoder
                     {
                         for (int j = 0; j < 3; ++j)
                         {
-                            ushort val;
-                            if (!Buffer.Decode(out val))
-                                return DracoUtils.Failed();
+                            ushort val = Buffer.DecodeU16();
                             face[j] = val;
                         }
                         Mesh.AddFace(face);
@@ -77,9 +66,7 @@ namespace FileFormat.Drako.Decoder
                     {
                         for (int j = 0; j < 3; ++j)
                         {
-                            uint val;
-                            if (!Decoding.DecodeVarint(out val, buffer))
-                                return false;
+                            uint val = buffer.DecodeVarintU32();
                             face[j] = (int)val;
                         }
                         Mesh.AddFace(face);
@@ -93,9 +80,7 @@ namespace FileFormat.Drako.Decoder
                     {
                         for (int j = 0; j < 3; ++j)
                         {
-                            int val;
-                            if (!Buffer.Decode(out val))
-                                return DracoUtils.Failed();
+                            int val = Buffer.DecodeI32();
                             face[j] = val;
                         }
                         Mesh.AddFace(face);
@@ -103,10 +88,9 @@ namespace FileFormat.Drako.Decoder
                 }
             }
             PointCloud.NumPoints = (int)numPoints;
-            return true;
         }
 
-        protected override bool CreateAttributesDecoder(int attrDecoderId)
+        protected override void CreateAttributesDecoder(int attrDecoderId)
         {
 
             // Always create the basic attribute decoder.
@@ -114,20 +98,18 @@ namespace FileFormat.Drako.Decoder
                 attrDecoderId,
                 new SequentialAttributeDecodersController(
                     new LinearSequencer(PointCloud.NumPoints)));
-            return true;
         }
 
         /// <summary>
         /// Decodes face indices that were compressed with an entropy code.
         /// Returns false on error.
         /// </summary>
-        bool DecodeAndDecompressIndices(int numFaces)
+        void DecodeAndDecompressIndices(int numFaces)
         {
 
             // Get decoded indices differences that were encoded with an entropy code.
             Span<int> indicesBuffer = stackalloc int[numFaces * 3];
-            if (!Decoding.DecodeSymbols(numFaces * 3, 1, Buffer, indicesBuffer))
-                return DracoUtils.Failed();
+            Decoding.DecodeSymbols(numFaces * 3, 1, Buffer, indicesBuffer);
             // Reconstruct the indices from the differences.
             // See MeshSequentialEncoder::CompressAndEncodeIndices() for more details.
             int lastIndexValue = 0;
@@ -147,7 +129,6 @@ namespace FileFormat.Drako.Decoder
                 }
                 Mesh.AddFace(face);
             }
-            return true;
         }
 
     }

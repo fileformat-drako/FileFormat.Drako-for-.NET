@@ -25,20 +25,14 @@ namespace FileFormat.Drako
             DracoHeader ret = new DracoHeader();
             ret.encoderType = EncodedGeometryType.Invalid;
             ret.method = DracoEncodingMethod.Sequential;
-            if (!buffer.Decode(out ret.major))
-                return null;
-            if (!buffer.Decode(out ret.minor))
-                return null;
+            ret.major = buffer.DecodeU8();
+            ret.minor = buffer.DecodeU8();
             ret.version = ret.major * 10 + ret.minor;
-            byte t;
-            if (!buffer.Decode(out t))
-                return null;
+            byte t = buffer.DecodeU8();
             ret.encoderType = (EncodedGeometryType)t;
-            if (!buffer.Decode(out t))
-                return null;
+            t = buffer.DecodeU8();
             ret.method = (DracoEncodingMethod)t;
-            if (!buffer.Decode(out ret.flags))
-                return null;
+            ret.flags = buffer.DecodeU16();
             return ret;
         }
     }

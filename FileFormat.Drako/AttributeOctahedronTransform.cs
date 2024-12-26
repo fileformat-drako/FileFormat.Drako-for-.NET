@@ -33,14 +33,14 @@ namespace FileFormat.Drako
             outData.AppendValue(quantizationBits);
         }
 
-        public bool EncodeParameters(EncoderBuffer encoder_buffer)
+        public void EncodeParameters(EncoderBuffer encoder_buffer)
         {
             if (quantizationBits != -1)
             {
                 encoder_buffer.Encode((byte)quantizationBits);
-                return true;
             }
-            return DracoUtils.Failed();
+            else
+                throw DracoUtils.Failed();
         }
 
         public PointAttribute GeneratePortableAttribute(PointAttribute attribute, int[] point_ids, int num_points)
@@ -61,8 +61,7 @@ namespace FileFormat.Drako
             Span<float> att_val = stackalloc float[3];
             int dst_index = 0;
             OctahedronToolBox converter = new OctahedronToolBox();
-            if (!converter.SetQuantizationBits(quantizationBits))
-                return null;
+            converter.SetQuantizationBits(quantizationBits);
             for (int i = 0; i < point_ids.Length; ++i)
             {
                 int att_val_id = attribute.MappedIndex(point_ids[i]);

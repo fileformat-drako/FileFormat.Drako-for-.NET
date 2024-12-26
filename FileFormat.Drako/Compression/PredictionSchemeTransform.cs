@@ -93,17 +93,15 @@ namespace FileFormat.Drako.Compression
         /// <summary>
         /// Encode any transform specific data.
         /// </summary>
-        public virtual bool EncodeTransformData(EncoderBuffer buffer)
+        public virtual void EncodeTransformData(EncoderBuffer buffer)
         {
-            return true;
         }
 
         /// <summary>
         /// Decodes any transform specific data. Called before Initialize() method.
         /// </summary>
-        public virtual bool DecodeTransformData(DecoderBuffer buffer)
+        public virtual void DecodeTransformData(DecoderBuffer buffer)
         {
-            return true;
         }
 
         /// <summary>

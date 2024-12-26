@@ -39,7 +39,7 @@ namespace FileFormat.Drako
             this.cornerOrder = cornerOrder;
         }
 
-        public override bool UpdatePointToAttributeIndexMapping(PointAttribute attribute)
+        public override void UpdatePointToAttributeIndexMapping(PointAttribute attribute)
         {
             TCornerTable cornerTable = traverser.CornerTable;
             attribute.SetExplicitMapping(mesh.NumPoints);
@@ -57,24 +57,22 @@ namespace FileFormat.Drako
                     if (attEntryId >= numPoints)
                     {
                         // There cannot be more attribute values than the number of points.
-                        return DracoUtils.Failed();
+                        throw DracoUtils.Failed();
                     }
                     attribute.SetPointMapEntry(pointId, attEntryId);
                 }
             }
-            return true;
         }
 
 
-        protected override bool GenerateSequenceInternal()
+        protected override void GenerateSequenceInternal()
         {
             traverser.OnTraversalStart();
             if (cornerOrder != null)
             {
                 for (int i = 0; i < cornerOrder.Count; ++i)
                 {
-                    if (!ProcessCorner(cornerOrder[i]))
-                        return false;
+                    ProcessCorner(cornerOrder[i]);
                 }
             }
             else
@@ -82,17 +80,15 @@ namespace FileFormat.Drako
                 int num_faces = traverser.CornerTable.NumFaces;
                 for (int i = 0; i < num_faces; ++i)
                 {
-                    if (!ProcessCorner(3 * i))
-                        return false;
+                    ProcessCorner(3 * i);
                 }
             }
             traverser.OnTraversalEnd();
-            return true;
         }
 
-        private bool ProcessCorner(int cornerId)
+        private void ProcessCorner(int cornerId)
         {
-            return traverser.TraverseFromCorner(cornerId);
+            traverser.TraverseFromCorner(cornerId);
         }
     }
 }

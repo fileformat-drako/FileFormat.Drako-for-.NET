@@ -29,7 +29,7 @@ namespace FileFormat.Drako
             Init(corner_table_, traversalObserver);
         }
 
-        public override bool TraverseFromCorner(int cornerId)
+        public override void TraverseFromCorner(int cornerId)
         {
             cornerTraversalStack.Clear();
             cornerTraversalStack.Add(cornerId);
@@ -128,7 +128,6 @@ namespace FileFormat.Drako
                     }
                 }
             }
-            return true;
         }
 
         public override void OnTraversalStart()

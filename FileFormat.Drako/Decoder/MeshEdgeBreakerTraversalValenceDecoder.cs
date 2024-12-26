@@ -35,19 +35,16 @@ namespace FileFormat.Drako.Decoder
         {
             this.numVertices = numVertices;
         }
-        public override bool Start(out DecoderBuffer outBuffer)
+        public override DecoderBuffer Start()
         {
-            outBuffer = null;
+            DecoderBuffer outBuffer = null;
             if (BitstreamVersion < 22)
             {
-                if (!base.DecodeTraversalSymbols())
-                    return DracoUtils.Failed();
+                base.DecodeTraversalSymbols();
             }
 
-            if (!base.DecodeStartFaces())
-                return DracoUtils.Failed();
-            if (!base.DecodeAttributeSeams())
-                return DracoUtils.Failed();
+            base.DecodeStartFaces();
+            base.DecodeAttributeSeams();
             outBuffer = buffer.Clone();
 
             if (BitstreamVersion < 22)
@@ -55,23 +52,17 @@ namespace FileFormat.Drako.Decoder
                 int numSplitSymbols;
                 if (BitstreamVersion < 20)
                 {
-                    if (!outBuffer.Decode(out numSplitSymbols))
-                        return DracoUtils.Failed();
+                    numSplitSymbols = outBuffer.DecodeI32();
                 }
                 else
                 {
-                    uint tmp;
-                    if (!Decoding.DecodeVarint(out tmp, outBuffer))
-                        return DracoUtils.Failed();
-                    numSplitSymbols = (int)tmp;
+                    numSplitSymbols = (int)outBuffer.DecodeVarintU32();
                 }
 
                 if (numSplitSymbols >= numVertices)
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
 
-                byte mode;
-                if (!outBuffer.Decode(out mode))
-                    return DracoUtils.Failed();
+                byte mode = outBuffer.DecodeU8();
                 if (mode == 0)// Edgebreaker valence mode 2-7
                 {
                     minValence = 2;
@@ -80,7 +71,7 @@ namespace FileFormat.Drako.Decoder
                 else
                 {
                     // Unsupported mode.
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
                 }
             }
             else
@@ -90,7 +81,7 @@ namespace FileFormat.Drako.Decoder
             }
 
             if (numVertices < 0)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             // Set the valences of all initial vertices to 0.
             vertexValences = new int[numVertices];
 
@@ -101,8 +92,7 @@ namespace FileFormat.Drako.Decoder
             contextCounters = new int[contextSymbols.Length];
             for (int i = 0; i < contextSymbols.Length; ++i)
             {
-                uint numSymbols;
-                Decoding.DecodeVarint(out numSymbols, outBuffer);
+                uint numSymbols = outBuffer.DecodeVarintU32();
                 if (numSymbols > 0)
                 {
 
@@ -113,7 +103,7 @@ namespace FileFormat.Drako.Decoder
                 }
             }
 
-            return true;
+            return outBuffer;
         }
 
         public override EdgeBreakerTopologyBitPattern DecodeSymbol()

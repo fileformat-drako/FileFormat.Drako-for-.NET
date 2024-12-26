@@ -13,37 +13,30 @@ namespace FileFormat.Drako.Decoder
         private PredictionScheme predictionScheme;
 
 
-        protected override bool DecodeValues(int[] pointIds, DecoderBuffer inBuffer)
+        protected override void DecodeValues(int[] pointIds, DecoderBuffer inBuffer)
         {
             int numValues = pointIds.Length;
             // Decode prediction scheme.
-            sbyte predictionSchemeMethod;
-            inBuffer.Decode(out predictionSchemeMethod);
+            sbyte predictionSchemeMethod = inBuffer.DecodeI8();
                 
             if (predictionSchemeMethod != (sbyte)PredictionSchemeMethod.None)
             {
-                sbyte predictionTransformType;
-                inBuffer.Decode(out predictionTransformType);
+                sbyte predictionTransformType = inBuffer.DecodeI8();
                 predictionScheme = CreateIntPredictionScheme( (PredictionSchemeMethod)(predictionSchemeMethod),
                     (PredictionSchemeTransformType)(predictionTransformType));
             }
 
             if (predictionScheme != null)
             {
-                if (!InitPredictionScheme(predictionScheme))
-                    return DracoUtils.Failed();
+                InitPredictionScheme(predictionScheme);
             }
 
-            if (!DecodeIntegerValues(pointIds, inBuffer))
-                return DracoUtils.Failed();
+            DecodeIntegerValues(pointIds, inBuffer);
 
             if (Decoder != null && Decoder.BitstreamVersion < 20)
             {
-                if (!StoreValues(numValues))
-                    return DracoUtils.Failed();
+                StoreValues(numValues);
             }
-
-            return true;
         }
 
         protected virtual PredictionScheme CreateIntPredictionScheme(PredictionSchemeMethod method,
@@ -118,32 +111,27 @@ namespace FileFormat.Drako.Decoder
             return MemoryMarshal.Cast<byte, int>(buf.AsSpan(0, numValues * 4));
         }
 
-        public virtual bool DecodeIntegerValues(int[] pointIds, DecoderBuffer inBuffer)
+        public virtual void DecodeIntegerValues(int[] pointIds, DecoderBuffer inBuffer)
         {
             int numComponents = GetNumValueComponents();
             int numEntries = pointIds.Length;
             int numValues = numEntries * numComponents;
             if (numComponents <= 0)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             Span<int> values = GetValues(numEntries);
             if(values == null)
-                return DracoUtils.Failed();
-            byte compressed;
-            if (!inBuffer.Decode(out compressed))
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
+            byte compressed = inBuffer.DecodeU8();
             if (compressed > 0)
             {
                 // Decode compressed values.
-                if (!Decoding.DecodeSymbols(numValues, numComponents, inBuffer, values))
-                    return DracoUtils.Failed();
+                Decoding.DecodeSymbols(numValues, numComponents, inBuffer, values);
             }
             else
             {
                 // Decode the integer data directly.
                 // Get the number of bytes for a given entry.
-                byte numBytes;
-                if (!inBuffer.Decode(out numBytes))
-                    return DracoUtils.Failed();
+                byte numBytes = inBuffer.DecodeU8();
 
                 //if (numBytes == sizeof(int))
                 //{
@@ -154,9 +142,7 @@ namespace FileFormat.Drako.Decoder
                 //{
                     for (int i = 0; i < values.Length; ++i)
                     {
-                        int tmp;
-                        inBuffer.Decode(out tmp);
-                        values[i] = tmp;
+                        values[i] = inBuffer.DecodeI32();
                     }
                 //}
             }
@@ -171,25 +157,19 @@ namespace FileFormat.Drako.Decoder
             // If the data was encoded with a prediction scheme, we must revert it.
             if (predictionScheme != null)
             {
-                if (!predictionScheme.DecodePredictionData(inBuffer))
-                    return DracoUtils.Failed();
-
-                if (!predictionScheme.ComputeOriginalValues(values, values, values.Length, numComponents, pointIds))
-                {
-                    return DracoUtils.Failed();
-                }
+                predictionScheme.DecodePredictionData(inBuffer);
+                predictionScheme.ComputeOriginalValues(values, values, values.Length, numComponents, pointIds);
             }
-            return true;
         }
 
-        public override bool TransformAttributeToOriginalFormat(int[] pointIds)
+        public override void TransformAttributeToOriginalFormat(int[] pointIds)
         {
             if (decoder != null && decoder.BitstreamVersion < 20)
-                return true;
-            return StoreValues(pointIds.Length);
+                return;
+            StoreValues(pointIds.Length);
         }
 
-        protected virtual bool StoreValues(int numValues)
+        protected virtual void StoreValues(int numValues)
         {
             switch (Attribute.DataType)
             {
@@ -206,9 +186,8 @@ namespace FileFormat.Drako.Decoder
                     Store32BitsValues(numValues);
                     break;
                 default:
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
             }
-            return true;
         }
 
         /// <summary>

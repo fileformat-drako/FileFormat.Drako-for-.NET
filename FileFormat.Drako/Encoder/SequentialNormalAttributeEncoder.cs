@@ -30,29 +30,25 @@ namespace FileFormat.Drako.Encoder
             return true;
         }
 
-        public override bool Initialize(PointCloudEncoder encoder, int attributeId)
+        public override void Initialize(PointCloudEncoder encoder, int attributeId)
         {
-
-            if (!base.Initialize(encoder, attributeId))
-                return false;
+            base.Initialize(encoder, attributeId);
             // Currently this encoder works only for 3-component normal vectors.
             if (Attribute.ComponentsCount != 3)
-                return false;
+                throw DracoUtils.Failed();
             var q = encoder.Options.GetQuantizationBits(attribute);
             if (q < 1)
-                return false;
+                throw DracoUtils.Failed();
             attribute_octahedron_transform_ = new AttributeOctahedronTransform(q);
-            return true;
         }
-        public override bool EncodeDataNeededByPortableTransform(EncoderBuffer out_buffer)
+        public override void EncodeDataNeededByPortableTransform(EncoderBuffer out_buffer)
         {
-            return attribute_octahedron_transform_.EncodeParameters(out_buffer);
+            attribute_octahedron_transform_.EncodeParameters(out_buffer);
         }
 
-        protected override bool PrepareValues(int[] pointIds, int numPoints)
+        protected override void PrepareValues(int[] pointIds, int numPoints)
         {
             this.portableAttribute = attribute_octahedron_transform_.GeneratePortableAttribute(Attribute, pointIds, numPoints);
-            return true;
         }
 
 // Converts a unit vector into octahedral coordinates (0-1 range).

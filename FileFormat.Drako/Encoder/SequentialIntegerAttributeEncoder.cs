@@ -32,40 +32,44 @@ namespace FileFormat.Drako.Encoder
             return SequentialAttributeEncoderType.Integer;
         }
 
-        public override bool Initialize(PointCloudEncoder encoder, int attributeId)
+        public override void Initialize(PointCloudEncoder encoder, int attributeId)
         {
-            if (!base.Initialize(encoder, attributeId))
-                return false;
+            base.Initialize(encoder, attributeId);
 
             // When encoding integers, this encoder currently works only for integer
             // attributes up to 32 bits.
 
             if (GetUniqueId() == SequentialAttributeEncoderType.Integer &&
                 !DracoUtils.IsIntegerType(Attribute.DataType))
-                return false;
+                throw DracoUtils.Failed();
             // Init prediction scheme.
             PredictionSchemeMethod predictionSchemeMethod = encoder.Options.GetAttributePredictionScheme(Attribute);
 
             predictionScheme = CreateIntPredictionScheme(predictionSchemeMethod);
 
-            if (predictionScheme != null && !InitPredictionScheme(predictionScheme))
-                predictionScheme = null;
-
-            return true;
+            if (predictionScheme != null)
+            {
+                try
+                {
+                    InitPredictionScheme(predictionScheme);
+                }
+                catch (Exception )
+                {
+                    predictionScheme = null;
+                }
+            }
         }
 
 
-        public override bool TransformAttributeToPortableFormat(int[] point_ids)
+        public override void TransformAttributeToPortableFormat(int[] point_ids)
         {
             if (Encoder != null)
             {
-                if (!PrepareValues(point_ids, Encoder.PointCloud.NumPoints))
-                    return false;
+                PrepareValues(point_ids, Encoder.PointCloud.NumPoints);
             }
             else
             {
-                if (!PrepareValues(point_ids, 0))
-                    return false;
+                PrepareValues(point_ids, 0);
             }
 
             // Update point to attribute mapping with the portable attribute if the
@@ -96,24 +100,20 @@ namespace FileFormat.Drako.Encoder
                 }
             }
 
-            return true;
         }
 
-        protected override bool EncodeValues(int[] pointIds, EncoderBuffer outBuffer)
+        protected override void EncodeValues(int[] pointIds, EncoderBuffer outBuffer)
         {
 
             // Initialize general quantization data. 
             PointAttribute attrib = Attribute;
             if (attrib.NumUniqueEntries == 0)
-                return true;
+                return;
 
             sbyte prediction_scheme_method = (sbyte) PredictionSchemeMethod.None;
             if (predictionScheme != null)
             {
-                if (!SetPredictionSchemeParentAttributes(predictionScheme))
-                {
-                    return false;
-                }
+                SetPredictionSchemeParentAttributes(predictionScheme);
 
                 prediction_scheme_method = (sbyte) (predictionScheme.PredictionMethod);
             }
@@ -162,11 +162,8 @@ namespace FileFormat.Drako.Encoder
                 }
 
 
-                if (!Encoding.EncodeSymbols(encoded_data, pointIds.Length * num_components, num_components,
-                    symbol_encoding_options, outBuffer))
-                {
-                    return false;
-                }
+                Encoding.EncodeSymbols(encoded_data, pointIds.Length * num_components, num_components,
+                    symbol_encoding_options, outBuffer);
             }
             else
             {
@@ -210,7 +207,6 @@ namespace FileFormat.Drako.Encoder
                 predictionScheme.EncodePredictionData(outBuffer);
             }
 
-            return true;
         }
 
         private Span<int> GetPortableAttributeData()
@@ -236,7 +232,7 @@ namespace FileFormat.Drako.Encoder
         /// <summary>
         /// Prepares the integer values that are going to be encoded.
         /// </summary>
-        protected virtual bool PrepareValues(int[] pointIds, int numPoints)
+        protected virtual void PrepareValues(int[] pointIds, int numPoints)
         {
             // Convert all values to int32T format.
             PointAttribute attrib = Attribute;
@@ -253,7 +249,6 @@ namespace FileFormat.Drako.Encoder
                 portable_attribute_data[dstIndex] = tmp;
                 dstIndex += numComponents;
             }
-            return true;
         }
 
         private void PreparePortableAttribute(int num_entries, int num_components, int num_points)

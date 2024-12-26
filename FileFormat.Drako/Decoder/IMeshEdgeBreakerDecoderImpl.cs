@@ -8,13 +8,13 @@ namespace FileFormat.Drako.Decoder
     interface IMeshEdgeBreakerDecoderImpl
     {
 
-        bool Init(MeshEdgeBreakerDecoder decoder);
+        void Init(MeshEdgeBreakerDecoder decoder);
 
         MeshAttributeCornerTable GetAttributeCornerTable(int attId);
         MeshAttributeIndicesEncodingData GetAttributeEncodingData(int attId);
-        bool CreateAttributesDecoder(int attDecoderId);
-        bool DecodeConnectivity();
-        bool OnAttributesDecoded();
+        void CreateAttributesDecoder(int attDecoderId);
+        void DecodeConnectivity();
+        void OnAttributesDecoded();
 
         MeshEdgeBreakerDecoder GetDecoder();
         CornerTable CornerTable { get; }

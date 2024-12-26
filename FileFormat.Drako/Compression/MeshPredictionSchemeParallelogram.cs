@@ -33,7 +33,7 @@ namespace FileFormat.Drako.Compression
         }
         public override PredictionSchemeMethod PredictionMethod { get {return PredictionSchemeMethod.Parallelogram;} }
 
-        public override bool ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
+        public override void ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
         {
             transform_.InitializeEncoding(inData, numComponents);
             Span<int> predVals = stackalloc int[numComponents];
@@ -106,10 +106,9 @@ namespace FileFormat.Drako.Compression
                 predVals[i] = 0;
             }
             transform_.ComputeCorrection(inData, predVals, outCorr, 0);
-            return true;
         }
 
-        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override void ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             transform_.InitializeDecoding(numComponents);
 
@@ -144,7 +143,6 @@ namespace FileFormat.Drako.Compression
                         predVals, 0, inCorr, dst_offset, outData, dst_offset);
                 }
             }
-            return true;
         }
 
 // Computes parallelogram prediction for a given corner and data entry id.

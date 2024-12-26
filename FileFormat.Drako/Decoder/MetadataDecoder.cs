@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FileFormat.Drako.Utils;
 
 namespace FileFormat.Drako.Decoder
 {
@@ -24,25 +25,20 @@ namespace FileFormat.Drako.Decoder
 
         public GeometryMetadata Decode(DecoderBuffer buffer)
         {
-            uint numAttrMetadata = 0;
-            if (!Decoding.DecodeVarint(out numAttrMetadata, buffer))
-                return null;
+            uint numAttrMetadata = buffer.DecodeVarintU32();
             var metadata = new GeometryMetadata();
             for(int i = 0; i < numAttrMetadata; i++)
             {
-                uint attUniqueId;
-                if (!Decoding.DecodeVarint(out attUniqueId, buffer))
-                    return null;
+                uint attUniqueId = buffer.DecodeVarintU32();
                 var attMetadata = new Metadata();
-                if (!DecodeMetadata(buffer, attMetadata))
-                    return null;
+                DecodeMetadata(buffer, attMetadata);
                 metadata.AttributeMetadata[(int)attUniqueId] = attMetadata;
             }
 
             DecodeMetadata(buffer, metadata);
             return metadata;
         }
-        private bool DecodeMetadata(DecoderBuffer buffer, Metadata metadata)
+        private void DecodeMetadata(DecoderBuffer buffer, Metadata metadata)
         {
             var stack = new List<MetadataTuple>();
             stack.Add(new MetadataTuple(null, metadata, 0));
@@ -54,58 +50,46 @@ namespace FileFormat.Drako.Decoder
                 if(mp.parent != null)
                 {
                     if (mp.level > kMaxSubmetadataLevel)
-                        return false;
+                        throw DracoUtils.Failed();
                     var subMetadataName = DecodeName(buffer);
                     if (subMetadataName == null)
-                        return false;
+                        throw DracoUtils.Failed();
                     var subMetadata = new Metadata();
                     metadata = subMetadata;
                     mp.parent.SubMetadata[subMetadataName] = subMetadata;
                 }
                 if (metadata == null)
-                    return false;
-                uint numEntries = 0;
-                if (!Decoding.DecodeVarint(out numEntries, buffer))
-                    return false;
+                    throw DracoUtils.Failed();
+                uint numEntries = buffer.DecodeVarintU32();
                 for(int i = 0; i < numEntries; i++)
                 {
-                    if (!DecodeEntry(buffer, metadata))
-                        return false;
+                    DecodeEntry(buffer, metadata);
                 }
-                uint numSubMetadata = 0;
-                if (!Decoding.DecodeVarint(out numSubMetadata, buffer))
-                    return false;
+                uint numSubMetadata = buffer.DecodeVarintU32();
                 if (numSubMetadata > buffer.RemainingSize)
-                    return false;
+                    throw DracoUtils.Failed();
                 for(var i = 0; i < numSubMetadata; i++)
                 {
                     stack.Add(new MetadataTuple(metadata, null, mp.parent != null ? mp.level + 1 : mp.level));
                 }
             }
-
-            return true;
         }
-        private bool DecodeEntry(DecoderBuffer buffer, Metadata metadata)
+        private void DecodeEntry(DecoderBuffer buffer, Metadata metadata)
         {
             var entryName = DecodeName(buffer);
             if (entryName == null)
-                return false;
-            uint dataSize = 0;
-            if (!Decoding.DecodeVarint(out dataSize, buffer))
-                return false;
+                throw DracoUtils.Failed();
+            uint dataSize = buffer.DecodeVarintU32();
             if (dataSize == 0 || dataSize > buffer.RemainingSize)
-                return false;
+                throw DracoUtils.Failed();
             var entryValue = new byte[dataSize];
             if (!buffer.Decode(entryValue, (int)dataSize))
-                return false;
+                throw DracoUtils.Failed();
             metadata.Entries[entryName] = entryValue;
-            return true;
         }
         private string DecodeName(DecoderBuffer buffer)
         {
-            uint nameLen = 0;
-            if (!Decoding.DecodeVarint(out nameLen, buffer))
-                return null;
+            uint nameLen = buffer.DecodeVarintU32();
             var bytes = new byte[nameLen];
             if (!buffer.Decode(bytes, bytes.Length))
                 return null;

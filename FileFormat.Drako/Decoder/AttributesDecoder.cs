@@ -25,32 +25,28 @@ namespace FileFormat.Drako.Decoder
         private DracoPointCloud pointCloud;
 
 
-        public virtual bool Initialize(PointCloudDecoder decoder, DracoPointCloud pointCloud)
+        public virtual void Initialize(PointCloudDecoder decoder, DracoPointCloud pointCloud)
         {
             this.pointCloud = pointCloud;
             this.pointCloudDecoder = decoder;
-            return true;
         }
 
-        public virtual bool DecodeAttributesDecoderData(DecoderBuffer inBuffer)
+        public virtual void DecodeAttributesDecoderData(DecoderBuffer inBuffer)
         {
             // Decode and create attributes.
             int numAttributes;
             if (pointCloudDecoder.BitstreamVersion < 20)
             {
-                if (!inBuffer.Decode(out numAttributes))
-                    return DracoUtils.Failed();
+                numAttributes = inBuffer.DecodeI32();
             }
             else
             {
-                uint n;
-                if (!Decoding.DecodeVarint(out n, inBuffer))
-                    return DracoUtils.Failed();
+                uint n = inBuffer.DecodeVarintU32();
                 numAttributes = (int) n;
             }
 
             if (numAttributes <= 0)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
 
             pointAttributeIds = new int[numAttributes];
             DracoPointCloud pc = pointCloud;
@@ -59,14 +55,10 @@ namespace FileFormat.Drako.Decoder
             {
                 // Decode attribute descriptor data.
                 byte attType, dataType, componentsCount, normalized;
-                if (!inBuffer.Decode(out attType))
-                    return DracoUtils.Failed();
-                if (!inBuffer.Decode(out dataType))
-                    return DracoUtils.Failed();
-                if (!inBuffer.Decode(out componentsCount))
-                    return DracoUtils.Failed();
-                if (!inBuffer.Decode(out normalized))
-                    return DracoUtils.Failed();
+                attType = inBuffer.DecodeU8();
+                dataType = inBuffer.DecodeU8();
+                componentsCount = inBuffer.DecodeU8();
+                normalized = inBuffer.DecodeU8();
                 DataType dracoDt = (DataType) (dataType);
 
                 // Add the attribute to the point cloud
@@ -80,12 +72,11 @@ namespace FileFormat.Drako.Decoder
                 ushort customId;
                 if (version < 13)
                 {
-                    if (!inBuffer.Decode(out customId))
-                        return DracoUtils.Failed();
+                    customId = inBuffer.DecodeU16();
                 }
                 else
                 {
-                    Decoding.DecodeVarint(out customId, inBuffer);
+                    customId = inBuffer.DecodeVarintU16();
                 }
 
                 ga.UniqueId = customId;
@@ -100,30 +91,23 @@ namespace FileFormat.Drako.Decoder
                 point_attribute_to_local_id_map_[attId] = i;
             }
 
-            return true;
         }
 
-        public virtual bool DecodeAttributes(DecoderBuffer buffer)
+        public virtual void DecodeAttributes(DecoderBuffer buffer)
         {
-            if (!DecodePortableAttributes(buffer))
-                return DracoUtils.Failed();
-            if (!DecodeDataNeededByPortableTransforms(buffer))
-                return DracoUtils.Failed();
-            if (!TransformAttributesToOriginalFormat())
-                return DracoUtils.Failed();
-            return true;
+            DecodePortableAttributes(buffer);
+            DecodeDataNeededByPortableTransforms(buffer);
+            TransformAttributesToOriginalFormat();
         }
 
-        protected abstract bool DecodePortableAttributes(DecoderBuffer buffer);
+        protected abstract void DecodePortableAttributes(DecoderBuffer buffer);
 
-        protected virtual bool DecodeDataNeededByPortableTransforms(DecoderBuffer buffer)
+        protected virtual void DecodeDataNeededByPortableTransforms(DecoderBuffer buffer)
         {
-            return true;
         }
 
-        protected virtual bool TransformAttributesToOriginalFormat()
+        protected virtual void TransformAttributesToOriginalFormat()
         {
-            return true;
         }
 
         public int GetAttributeId(int i)

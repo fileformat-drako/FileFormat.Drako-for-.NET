@@ -8,13 +8,13 @@ namespace FileFormat.Drako.Encoder
     interface IMeshEdgeBreakerEncoder
     {
 
-        bool Init(MeshEdgeBreakerEncoder encoder);
+        void Init(MeshEdgeBreakerEncoder encoder);
 
         MeshAttributeCornerTable GetAttributeCornerTable(int attId);
         MeshAttributeIndicesEncodingData GetAttributeEncodingData(int attId);
-        bool GenerateAttributesEncoder(int attId);
-        bool EncodeAttributesEncoderIdentifier(int attEncoderId);
-        bool EncodeConnectivity();
+        void GenerateAttributesEncoder(int attId);
+        void EncodeAttributesEncoderIdentifier(int attEncoderId);
+        void EncodeConnectivity();
 
         /// <summary>
         /// Returns corner table of the encoded mesh.

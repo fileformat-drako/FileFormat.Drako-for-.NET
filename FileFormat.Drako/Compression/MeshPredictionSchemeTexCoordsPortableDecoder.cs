@@ -17,7 +17,7 @@ namespace FileFormat.Drako.Compression
             predictor_ = new MeshPredictionSchemeTexCoordsPortablePredictor(meshData);
         }
 
-        public override bool ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components,
+        public override void ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components,
             int[] entry_to_point_id_map)
         {
             predictor_.entry_to_point_id_map_ = entry_to_point_id_map;
@@ -36,11 +36,9 @@ namespace FileFormat.Drako.Compression
                     predictor_.predicted_value_.AsSpan(), 0,
                     out_corr, dst_offset, 0);
             }
-
-            return true;
         }
 
-        public override bool EncodePredictionData(EncoderBuffer buffer)
+        public override void EncodePredictionData(EncoderBuffer buffer)
         {
 
             // Encode the delta-coded orientations using arithmetic coding.
@@ -57,21 +55,20 @@ namespace FileFormat.Drako.Compression
             }
 
             encoder.EndEncoding(buffer);
-            return base.EncodePredictionData(buffer);
+            base.EncodePredictionData(buffer);
         }
 
 
-        public override bool SetParentAttribute(PointAttribute att)
+        public override void SetParentAttribute(PointAttribute att)
         {
             if (att == null || att.AttributeType != AttributeType.Position)
-                return DracoUtils.Failed();  // Invalid attribute type.
+                throw DracoUtils.Failed();  // Invalid attribute type.
             if (att.ComponentsCount != 3)
-                return DracoUtils.Failed();  // Currently works only for 3 component positions.
+                throw DracoUtils.Failed();  // Currently works only for 3 component positions.
             predictor_.pos_attribute_ = att;
-            return true;
         }
 
-        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override void ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             predictor_.entry_to_point_id_map_ = entryToPointIdMap;
             this.transform_.InitializeDecoding(numComponents);
@@ -80,32 +77,30 @@ namespace FileFormat.Drako.Compression
             for (int p = 0; p < corner_map_size; ++p) {
                 int corner_id = this.meshData.dataToCornerMap[p];
                 if (!predictor_.ComputePredictedValue(false, corner_id, outData, p))
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
 
                 int dst_offset = p * numComponents;
                 this.transform_.ComputeOriginalValue(predictor_.predicted_value_.AsSpan(), 0,
                                                        inCorr, dst_offset,
                                                        outData, dst_offset);
             }
-            return true;
         }
-        public override bool DecodePredictionData(DecoderBuffer buffer) {
+        public override void DecodePredictionData(DecoderBuffer buffer) {
             // Decode the delta coded orientations.
-            int num_orientations = 0;
-            if (!buffer.Decode(out num_orientations) || num_orientations < 0)
-                return DracoUtils.Failed();
+            int num_orientations = buffer.DecodeI32();
+            if (num_orientations < 0)
+                throw DracoUtils.Failed();
             predictor_.ResizeOrientations(num_orientations);
             bool last_orientation = true;
             RAnsBitDecoder decoder = new RAnsBitDecoder();
-            if (!decoder.StartDecoding(buffer))
-                return DracoUtils.Failed();
+            decoder.StartDecoding(buffer);
             for (int i = 0; i < num_orientations; ++i) {
                 if (!decoder.DecodeNextBit())
                     last_orientation = !last_orientation;
                 predictor_.set_orientation(i, last_orientation);
             }
             decoder.EndDecoding();
-            return base.DecodePredictionData(buffer);
+            base.DecodePredictionData(buffer);
         }
         public override AttributeType GetParentAttributeType(int i)
         {

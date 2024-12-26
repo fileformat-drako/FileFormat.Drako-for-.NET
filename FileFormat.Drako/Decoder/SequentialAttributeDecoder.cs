@@ -19,31 +19,27 @@ namespace FileFormat.Drako.Decoder
         PointAttribute portableAttribute;
         private int attributeId = -1;
 
-        public virtual bool Initialize(PointCloudDecoder decoder, int attributeId)
+        public virtual void Initialize(PointCloudDecoder decoder, int attributeId)
         {
             this.decoder = decoder;
             this.attribute = decoder.PointCloud.Attribute(attributeId);
             this.attributeId = attributeId;
-            return true;
         }
 
         /// <summary>
         /// Intialization for a specific attribute. This can be used mostly for
         /// standalone decoding of an attribute without an PointCloudDecoder.
         /// </summary>
-        public virtual bool InitializeStandalone(PointAttribute attribute)
+        public virtual void InitializeStandalone(PointAttribute attribute)
         {
             this.attribute = attribute;
             this.attributeId = -1;
-            return true;
         }
 
-        public virtual bool Decode(int[] pointIds, DecoderBuffer inBuffer)
+        public virtual void Decode(int[] pointIds, DecoderBuffer inBuffer)
         {
             attribute.Reset(pointIds.Length);
-            if (!DecodeValues(pointIds, inBuffer))
-                return DracoUtils.Failed();
-            return true;
+            DecodeValues(pointIds, inBuffer);
         }
 
         public PointAttribute Attribute
@@ -66,13 +62,13 @@ namespace FileFormat.Drako.Decoder
         /// Returns false when the initialization failed (in which case the scheme
         /// cannot be used).
         /// </summary>
-        protected virtual bool InitPredictionScheme(PredictionScheme ps)
+        protected virtual void InitPredictionScheme(PredictionScheme ps)
         {
             for (int i = 0; i < ps.NumParentAttributes; ++i)
             {
                 int attId = decoder.PointCloud.GetNamedAttributeId(ps.GetParentAttributeType(i));
                 if (attId == -1)
-                    return DracoUtils.Failed(); // Requested attribute does not exist.
+                    throw DracoUtils.Failed(); // Requested attribute does not exist.
                 PointAttribute parentAttribute;
                 if (decoder.BitstreamVersion < 20)
                 {
@@ -82,17 +78,17 @@ namespace FileFormat.Drako.Decoder
                 {
                     parentAttribute = decoder.GetPortableAttribute(attId);
                 }
-                if (parentAttribute == null || !ps.SetParentAttribute(parentAttribute))
-                    return DracoUtils.Failed();
+                if (parentAttribute == null)
+                    throw DracoUtils.Failed();
+                ps.SetParentAttribute(parentAttribute);
             }
-            return true;
         }
 
         /// <summary>
         /// The actual implementation of the attribute decoding. Should be overriden
         /// for specialized decoders.
         /// </summary>
-        protected virtual bool DecodeValues(int[] pointIds, DecoderBuffer inBuffer)
+        protected virtual void DecodeValues(int[] pointIds, DecoderBuffer inBuffer)
         {
             int numValues = pointIds.Length;
             int entrySize = (int) attribute.ByteStride;
@@ -102,32 +98,28 @@ namespace FileFormat.Drako.Decoder
             for (int i = 0; i < numValues; ++i)
             {
                 if (!inBuffer.Decode(valueData, entrySize))
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
                 attribute.Buffer.Write(outBytePos, valueData, entrySize);
                 outBytePos += entrySize;
             }
-            return true;
         }
 
-        public virtual bool DecodePortableAttribute(int[] pointIds, DecoderBuffer in_buffer)
+        public virtual void DecodePortableAttribute(int[] pointIds, DecoderBuffer in_buffer)
         {
-            if (attribute.ComponentsCount <= 0 || !attribute.Reset(pointIds.Length))
-                return DracoUtils.Failed();
-            if (!DecodeValues(pointIds, in_buffer))
-                return DracoUtils.Failed();
-            return true;
+            if (attribute.ComponentsCount <= 0)
+                throw DracoUtils.Failed();
+            attribute.Reset(pointIds.Length);
+            DecodeValues(pointIds, in_buffer);
         }
 
-        public virtual bool DecodeDataNeededByPortableTransform(int[] pointIds, DecoderBuffer in_buffer)
+        public virtual void DecodeDataNeededByPortableTransform(int[] pointIds, DecoderBuffer in_buffer)
         {
             // Default implementation does not apply any transform.
-            return true;
         }
 
-        public virtual bool TransformAttributeToOriginalFormat(int[] pointIds)
+        public virtual void TransformAttributeToOriginalFormat(int[] pointIds)
         {
             // Default implementation does not apply any transform.
-            return true;
         }
 
         public PointAttribute PortableAttribute

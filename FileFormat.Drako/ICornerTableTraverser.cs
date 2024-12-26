@@ -10,7 +10,7 @@ namespace FileFormat.Drako
         TCornerTable CornerTable{ get; }
 
         //CornerTableTraversalProcessor<TCornerTable> TraversalProcessor{ get; }
-        bool TraverseFromCorner(int cornerId);
+        void TraverseFromCorner(int cornerId);
         void OnTraversalStart();
         void OnTraversalEnd();
     }

@@ -44,7 +44,7 @@
             is_vertex_visited_[vert_id] = true;
         }
 
-        public abstract bool TraverseFromCorner(int cornerId);
+        public abstract void TraverseFromCorner(int cornerId);
 
         public abstract void OnTraversalStart();
 

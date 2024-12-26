@@ -26,20 +26,19 @@ namespace FileFormat.Drako.Encoder
             return true;
         }
 
-        public override bool Initialize(
+        public override void Initialize(
             PointCloudEncoder encoder, int attributeId)
         {
-            if (!base.Initialize(encoder, attributeId))
-                return false;
+            base.Initialize(encoder, attributeId);
             // This encoder currently works only for floating point attributes.
             PointAttribute attribute = Encoder.PointCloud.Attribute(attributeId);
             if (attribute.DataType != DataType.FLOAT32)
-                return false;
+                throw DracoUtils.Failed();
 
             // Initialize AttributeQuantizationTransform.
             int quantization_bits = encoder.Options.GetQuantizationBits(attribute);
             if (quantization_bits < 1)
-                return false;
+                throw DracoUtils.Failed();
             /*
             if (encoder.Options.IsAttributeOptionSet(attribute_id,
                     "quantization_origin") &&
@@ -65,26 +64,21 @@ namespace FileFormat.Drako.Encoder
                     quantization_bits);
             }
 
-            return true;
         }
 
-        public override bool EncodeDataNeededByPortableTransform(EncoderBuffer out_buffer)
+        public override void EncodeDataNeededByPortableTransform(EncoderBuffer out_buffer)
         {
-            return attribute_quantization_transform_.EncodeParameters(out_buffer);
+            attribute_quantization_transform_.EncodeParameters(out_buffer);
         }
 
-        protected override bool PrepareValues(int[] pointIds, int numPoints)
+        protected override void PrepareValues(int[] pointIds, int numPoints)
         {
             var portable_attribute = attribute_quantization_transform_.InitTransformedAttribute(
                     attribute, pointIds.Length);
-            if (!attribute_quantization_transform_.TransformAttribute(
-                    attribute, pointIds, portable_attribute))
-            {
-                return false;
-            }
+            attribute_quantization_transform_.TransformAttribute(
+                    attribute, pointIds, portable_attribute);
             this.portableAttribute = portable_attribute;
 
-            return true;
         }
     }
 }

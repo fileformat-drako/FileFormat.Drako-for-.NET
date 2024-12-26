@@ -48,12 +48,11 @@ namespace FileFormat.Drako
         // Copy parameter values into the provided AttributeTransformData instance.
         public abstract void CopyToAttributeTransformData(AttributeTransformData outData);
 
-        public bool TransferToAttribute(PointAttribute attribute)
+        public void TransferToAttribute(PointAttribute attribute)
         {
             var transform_data = new AttributeTransformData();
             CopyToAttributeTransformData(transform_data);
             attribute.AttributeTransformData = transform_data;
-            return true;
         }
 
         protected PointAttribute InitPortableAttribute(int num_entries, int num_components, int num_points,
@@ -137,7 +136,7 @@ namespace FileFormat.Drako
             out_data.AppendValue(range_);
         }
 
-        public bool TransformAttribute(
+        public void TransformAttribute(
             PointAttribute attribute, int[] point_ids,
             PointAttribute target_attribute)
         {
@@ -151,7 +150,6 @@ namespace FileFormat.Drako
                 GeneratePortableAttribute(attribute, point_ids, target_attribute.NumUniqueEntries,
                                           target_attribute);
             }
-            return true;
         }
 
 
@@ -162,11 +160,11 @@ namespace FileFormat.Drako
             range_ = range;
         }
 
-        public bool ComputeParameters(PointAttribute attribute, int quantization_bits)
+        public void ComputeParameters(PointAttribute attribute, int quantization_bits)
         {
             if (quantization_bits_ != -1)
             {
-                return DracoUtils.Failed(); // already initialized.
+                throw DracoUtils.Failed(); // already initialized.
             }
 
             quantization_bits_ = quantization_bits;
@@ -203,20 +201,18 @@ namespace FileFormat.Drako
             if (DracoUtils.IsZero(range_))
                 range_ = 1.0f;
 
-            return true;
         }
 
-        public bool EncodeParameters(EncoderBuffer encoder_buffer)
+        public void EncodeParameters(EncoderBuffer encoder_buffer)
         {
             if (quantization_bits_ != -1)
             {
                 encoder_buffer.Encode(min_values_);
                 encoder_buffer.Encode(range_);
                 encoder_buffer.Encode((byte)quantization_bits_);
-                return true;
             }
-
-            return DracoUtils.Failed();
+            else
+                throw DracoUtils.Failed();
         }
 
         public void GeneratePortableAttribute(PointAttribute attribute, int num_points, PointAttribute target_attribute)

@@ -192,18 +192,17 @@ namespace FileFormat.Drako
         /// value are merged into a single entry).
         /// </summary>
         /// <returns>true if deduplication successed.</returns>
-        public virtual bool DeduplicateAttributeValues()
+        public virtual void DeduplicateAttributeValues()
         {
 
             if (numPoints == 0)
-                return DracoUtils.Failed(); // Unexcpected attribute size.
+                throw DracoUtils.Failed(); // Unexcpected attribute size.
             // Deduplicate all attributes.
             for (int i = 0; i < attributes.Count; i++)
             {
                 var attr = attributes[i];
                 attr.DeduplicateValues();
             }
-            return true;
         }
 
         struct VertexIndex : IComparable<VertexIndex>

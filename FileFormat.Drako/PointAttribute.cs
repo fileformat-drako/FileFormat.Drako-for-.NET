@@ -239,7 +239,7 @@ namespace FileFormat.Drako
         /// </summary>
         /// <param name="numAttributeValues">Number of the attribute entries to preallocate</param>
         /// <returns>true means successed.</returns>
-        public bool Reset(int numAttributeValues)
+        public void Reset(int numAttributeValues)
         {
             if (buffer == null)
             {
@@ -252,7 +252,6 @@ namespace FileFormat.Drako
             this.ByteOffset = 0;
             // Assign the new buffer to the parent attribute.
             numUniqueEntries = numAttributeValues;
-            return true;
         }
 
         public int MappedIndex(int pointIndex)

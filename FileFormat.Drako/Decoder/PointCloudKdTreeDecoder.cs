@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FileFormat.Drako.Utils;
 
 namespace FileFormat.Drako.Decoder
 {
@@ -11,21 +12,18 @@ namespace FileFormat.Drako.Decoder
         {
         }
 
-        protected override bool DecodeGeometryData()
+        protected override void DecodeGeometryData()
         {
-            int num_points;
-            if (!Buffer.Decode(out num_points))
-                return false;
+            int num_points = buffer.DecodeI32();
             if (num_points < 0)
-                return false;
+                throw DracoUtils.Failed();
             PointCloud.NumPoints = num_points;
-            return true;
         }
 
-        protected override bool CreateAttributesDecoder(int attrDecoderId)
+        protected override void CreateAttributesDecoder(int attrDecoderId)
         {
             // Always create the basic attribute decoder.
-            return SetAttributesDecoder(attrDecoderId, new KdTreeAttributesDecoder());
+            SetAttributesDecoder(attrDecoderId, new KdTreeAttributesDecoder());
         }
     }
 }

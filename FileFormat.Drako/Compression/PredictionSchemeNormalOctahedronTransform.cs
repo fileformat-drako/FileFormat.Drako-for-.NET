@@ -17,13 +17,12 @@ namespace FileFormat.Drako.Compression
         public int CenterValue => octahedronToolBox.CenterValue;
         public int QuantizationBits => octahedronToolBox.QuantizationBits;
 
-        protected bool SetMaxQuantizedValue(int value)
+        protected void SetMaxQuantizedValue(int value)
         {
             if (value % 2 == 0)
-                return false;
+                throw new ArgumentException("Invalid quantized value");
             int q = DracoUtils.MostSignificantBit((uint)value) + 1;
             octahedronToolBox.SetQuantizationBits(q);
-            return true;
         }
         // For correction values.
         protected int MakePositive(int x)
@@ -88,24 +87,21 @@ namespace FileFormat.Drako.Compression
         }
 
 
-        public override bool DecodeTransformData(DecoderBuffer buffer)
+        public override void DecodeTransformData(DecoderBuffer buffer)
         {
             int maxQuantizedValue, centerValue;
-            if (!buffer.Decode(out maxQuantizedValue))
-                return false;
+            maxQuantizedValue = buffer.DecodeI32();
             if (buffer.BitstreamVersion < 22)
             {
-                if (!buffer.Decode(out centerValue))
-                    return false;
+                centerValue = buffer.DecodeI32(); 
             }
 
-            return SetMaxQuantizedValue(maxQuantizedValue);
+            SetMaxQuantizedValue(maxQuantizedValue);
         }
 
-        public override bool EncodeTransformData(EncoderBuffer buffer)
+        public override void EncodeTransformData(EncoderBuffer buffer)
         {
             buffer.Encode(octahedronToolBox.MaxQuantizedValue);
-            return true;
         }
 
         public override void ComputeCorrection(Span<int> originalVals, int originalOffset, Span<int> predictedVals, int predictedOffset, Span<int> outCorrVals, int outOffset, int valId)

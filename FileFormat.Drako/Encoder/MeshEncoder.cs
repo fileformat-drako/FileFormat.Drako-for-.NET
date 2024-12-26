@@ -53,18 +53,15 @@ namespace FileFormat.Drako.Encoder
             }
         }
 
-        protected override bool EncodeGeometryData()
+        protected override void EncodeGeometryData()
         {
-
-            if (!EncodeConnectivity())
-                return false;
-            return true;
+            EncodeConnectivity();
         }
 
         /// <summary>
         /// Needs to be implemented by the derived classes.
         /// </summary>
-        protected abstract bool EncodeConnectivity();
+        protected abstract void EncodeConnectivity();
 
         // TODO(ostava): Prediction schemes need refactoring.
         /*

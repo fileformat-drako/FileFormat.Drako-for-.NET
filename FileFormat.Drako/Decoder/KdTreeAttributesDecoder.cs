@@ -14,14 +14,12 @@ namespace FileFormat.Drako.Decoder
         private IntList min_signed_values_ = new IntList();
         private List<PointAttribute> quantized_portable_attributes_ = new List<PointAttribute>();
 
-        protected override bool DecodePortableAttributes(DecoderBuffer buffer)
+        protected override void DecodePortableAttributes(DecoderBuffer buffer)
         {
             if (buffer.BitstreamVersion < 23)
-                return true;
+                return;
 
-            byte compression_level = 0;
-            if (!buffer.Decode(out compression_level))
-                return false;
+            byte compression_level = buffer.DecodeU8();
             int num_points = Decoder.PointCloud.NumPoints;
 
             // Decode data using the kd tree decoding into integer (portable) attributes.
@@ -74,7 +72,7 @@ namespace FileFormat.Drako.Decoder
                 else
                 {
                     // Unsupported type.
-                    return false;
+                    throw DracoUtils.Failed();
                 }
 
                 // Add attribute to the output iterator used by the core algorithm.
@@ -89,12 +87,10 @@ namespace FileFormat.Drako.Decoder
             var out_it = new PointAttributeVectorOutputIterator(atts);
 
             var decoder = new DynamicIntegerPointsKdTreeDecoder (compression_level, total_dimensionality);
-            if (!decoder.DecodePoints(buffer, out_it))
-                return false;
-            return true;
+            decoder.DecodePoints(buffer, out_it);
         }
 
-        protected override bool DecodeDataNeededByPortableTransforms(DecoderBuffer in_buffer)
+        protected override void DecodeDataNeededByPortableTransforms(DecoderBuffer in_buffer)
         {
             if (in_buffer.BitstreamVersion >= 23)
             {
@@ -111,19 +107,16 @@ namespace FileFormat.Drako.Decoder
                         int num_components = att.ComponentsCount;
                         min_value = new float[num_components];
                         if (!in_buffer.Decode(min_value))
-                            return false;
-                        float max_value_dif;
-                        if (!in_buffer.Decode(out max_value_dif))
-                            return false;
-                        byte quantization_bits;
-                        if (!in_buffer.Decode(out quantization_bits) || quantization_bits > 31)
-                            return false;
+                            throw DracoUtils.Failed();
+                        float max_value_dif = in_buffer.DecodeF32();
+                        byte quantization_bits = in_buffer.DecodeU8();
+                        if (quantization_bits > 31)
+                            throw DracoUtils.Failed();
                         AttributeQuantizationTransform transform = new AttributeQuantizationTransform();
                         transform.SetParameters(quantization_bits, min_value, num_components, max_value_dif);
                         int num_transforms = attribute_quantization_transforms_.Count;
-                        if (!transform.TransferToAttribute(
-                            quantized_portable_attributes_[num_transforms]))
-                            return false;
+                        transform.TransferToAttribute(
+                            quantized_portable_attributes_[num_transforms]);
                         attribute_quantization_transforms_.Add(transform);
                     }
                 }
@@ -131,12 +124,10 @@ namespace FileFormat.Drako.Decoder
                 // Decode transform data for signed integer attributes.
                 for (int i = 0; i < min_signed_values_.Count; ++i)
                 {
-                    uint val;
-                    Decoding.DecodeVarint(out val, in_buffer);
+                    uint val = in_buffer.DecodeVarintU32();
                     min_signed_values_[i] = (int)val;
                 }
 
-                return true;
             }
 #if DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   // Handle old bitstream
@@ -209,11 +200,11 @@ namespace FileFormat.Drako.Decoder
   }
   return true;
 #else
-            return false;
+            throw DracoUtils.Failed();
 #endif
         }
 
-        bool TransformAttributeBackToSignedType_short(PointAttribute att, int num_processed_signed_components)
+        void TransformAttributeBackToSignedType_short(PointAttribute att, int num_processed_signed_components)
         {
             ushort[] unsigned_val = new ushort[att.ComponentsCount];
             ushort[] signed_val = new ushort[att.ComponentsCount];
@@ -229,9 +220,8 @@ namespace FileFormat.Drako.Decoder
                 }
                 att.SetAttributeValue(avi, signed_val);
             }
-            return true;
         }
-        bool TransformAttributeBackToSignedType_sbyte(PointAttribute att, int num_processed_signed_components)
+        void TransformAttributeBackToSignedType_sbyte(PointAttribute att, int num_processed_signed_components)
         {
             byte[] unsigned_val = new byte[att.ComponentsCount];
             byte[] signed_val = new byte[att.ComponentsCount];
@@ -247,9 +237,8 @@ namespace FileFormat.Drako.Decoder
                 }
                 att.SetAttributeValue(avi, signed_val, 0);
             }
-            return true;
         }
-        bool TransformAttributeBackToSignedType_int(PointAttribute att, int num_processed_signed_components)
+        void TransformAttributeBackToSignedType_int(PointAttribute att, int num_processed_signed_components)
         {
             uint[] unsigned_val = new uint[att.ComponentsCount];
             uint[] signed_val = new uint[att.ComponentsCount];
@@ -265,15 +254,14 @@ namespace FileFormat.Drako.Decoder
                 }
                 att.SetAttributeValue(avi, signed_val);
             }
-            return true;
         }
 
-        protected override bool TransformAttributesToOriginalFormat()
+        protected override void TransformAttributesToOriginalFormat()
         {
 
             if (quantized_portable_attributes_.Count == 0 && min_signed_values_.Count == 0)
             {
-                return true;
+                return;
             }
 
             int num_processed_quantized_attributes = 0;
@@ -291,18 +279,15 @@ namespace FileFormat.Drako.Decoder
                     // Values are stored as unsigned in the attribute, make them signed again.
                     if (att.DataType == DataType.INT32)
                     {
-                        if (!TransformAttributeBackToSignedType_int(att, num_processed_signed_components))
-                            return false;
+                        TransformAttributeBackToSignedType_int(att, num_processed_signed_components);
                     }
                     else if (att.DataType == DataType.INT16)
                     {
-                        if (!TransformAttributeBackToSignedType_short(att, num_processed_signed_components))
-                            return false;
+                        TransformAttributeBackToSignedType_short(att, num_processed_signed_components);
                     }
                     else if (att.DataType == DataType.INT8)
                     {
-                        if (!TransformAttributeBackToSignedType_sbyte(att, num_processed_signed_components))
-                            return false;
+                        TransformAttributeBackToSignedType_sbyte(att, num_processed_signed_components);
                     }
                     num_processed_signed_components += att.ComponentsCount;
                 }
@@ -353,7 +338,6 @@ namespace FileFormat.Drako.Decoder
                 }
             }
 
-            return true;
         }
 
         public override PointAttribute GetPortableAttribute(int attId)

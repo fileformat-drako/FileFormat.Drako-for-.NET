@@ -34,7 +34,7 @@ namespace FileFormat.Drako.Encoder
             return DracoEncodingMethod.EdgeBreaker;
         }
 
-        protected override bool InitializeEncoder()
+        protected override void InitializeEncoder()
         {
             impl = null;
             if (options.CompressionLevel == DracoCompressionLevel.Optimal)
@@ -47,27 +47,22 @@ namespace FileFormat.Drako.Encoder
                 Buffer.Encode((byte) (0));
                 impl = new MeshEdgeBreakerEncoderImpl(new MeshEdgeBreakerTraversalEncoder());
             }
-            if (!impl.Init(this))
-                return false;
-            return true;
+            impl.Init(this);
         }
 
-        protected override bool EncodeConnectivity()
+        protected override void EncodeConnectivity()
         {
-            return impl.EncodeConnectivity();
+            impl.EncodeConnectivity();
         }
 
-        protected override bool GenerateAttributesEncoder(int attId)
+        protected override void GenerateAttributesEncoder(int attId)
         {
-
-            if (!impl.GenerateAttributesEncoder(attId))
-                return false;
-            return true;
+            impl.GenerateAttributesEncoder(attId);
         }
 
-        protected override bool EncodeAttributesEncoderIdentifier(int attEncoderId)
+        protected override void EncodeAttributesEncoderIdentifier(int attEncoderId)
         {
-            return impl.EncodeAttributesEncoderIdentifier(attEncoderId);
+            impl.EncodeAttributesEncoderIdentifier(attEncoderId);
 
         }
 

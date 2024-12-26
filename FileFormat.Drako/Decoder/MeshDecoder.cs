@@ -34,10 +34,10 @@ namespace FileFormat.Drako.Decoder
         /// <param name="outMesh"></param>
         /// <param name="decodeData"></param>
         /// <returns></returns>
-        public override bool Decode(DracoHeader header, DecoderBuffer inBuffer, DracoPointCloud outMesh, bool decodeData)
+        public override void Decode(DracoHeader header, DecoderBuffer inBuffer, DracoPointCloud outMesh, bool decodeData)
         {
             this.mesh = (DracoMesh)outMesh;
-            return base.Decode(header, inBuffer, outMesh, decodeData);
+            base.Decode(header, inBuffer, outMesh, decodeData);
         }
 
         /// <summary>
@@ -71,15 +71,14 @@ namespace FileFormat.Drako.Decoder
             return null;
         }
 
-        protected override bool DecodeGeometryData()
+        protected override void DecodeGeometryData()
         {
             if (mesh == null)
-                return DracoUtils.Failed();
-            if (!DecodeConnectivity())
-                return DracoUtils.Failed();
-            return base.DecodeGeometryData();
+                throw DracoUtils.Failed();
+            DecodeConnectivity();
+            base.DecodeGeometryData();
         }
 
-        protected abstract bool DecodeConnectivity();
+        protected abstract void DecodeConnectivity();
     }
 }

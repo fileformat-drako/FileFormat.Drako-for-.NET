@@ -23,32 +23,28 @@ namespace FileFormat.Drako
         /// Sets |sourceBuffer| as the buffer to decode bits from.
         /// Returns false when the data is invalid.
         /// </summary>
-        public bool StartDecoding(DecoderBuffer sourceBuffer)
+        public void StartDecoding(DecoderBuffer sourceBuffer)
         {
             Clear();
 
-            if (!sourceBuffer.Decode(out probZero))
-                return DracoUtils.Failed();
+            probZero = sourceBuffer.DecodeU8();
 
             uint sizeInBytes;
             if (sourceBuffer.BitstreamVersion < 22)
             {
-                if (!sourceBuffer.Decode(out sizeInBytes))
-                    return DracoUtils.Failed();
+                sizeInBytes = sourceBuffer.DecodeU32();
             }
             else
             {
-                if (!Decoding.DecodeVarint(out sizeInBytes, sourceBuffer))
-                    return DracoUtils.Failed();
+                sizeInBytes = Decoding.DecodeVarintU32(sourceBuffer);
             }
 
             if (sizeInBytes > sourceBuffer.RemainingSize)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
 
             if (ANSReadInit(sourceBuffer.Pointer + sourceBuffer.DecodedSize, (int)sizeInBytes) != 0)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             sourceBuffer.Advance((int)sizeInBytes);
-            return true;
 
         }
 

@@ -11,7 +11,7 @@ namespace FileFormat.Drako.Compression
     partial class MeshPredictionSchemeGeometricNormal
     {
         private RAnsBitEncoder flip_normal_bit_encoder_ = new RAnsBitEncoder();
-        public override bool ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components,
+        public override void ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components,
             int[] entry_to_point_id_map)
         {
 
@@ -76,18 +76,15 @@ namespace FileFormat.Drako.Compression
                 }
             }
 
-            return true;
         }
 
-        public override bool EncodePredictionData(EncoderBuffer buffer)
+        public override void EncodePredictionData(EncoderBuffer buffer)
         {
 
-            if (!this.transform_.EncodeTransformData(buffer))
-                return false;
+            this.transform_.EncodeTransformData(buffer);
 
             // Encode normal flips.
             flip_normal_bit_encoder_.EndEncoding(buffer);
-            return true;
         }
     }
 

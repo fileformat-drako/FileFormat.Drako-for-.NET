@@ -25,7 +25,7 @@ namespace FileFormat.Drako.Compression
         public override PredictionSchemeMethod PredictionMethod { get {return PredictionSchemeMethod.Difference;} }
         public override bool Initialized { get { return true; } }
 
-        public override bool ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
+        public override void ComputeCorrectionValues(Span<int> inData, Span<int> outCorr, int size, int numComponents, int[] entryToPointIdMap)
         {
 
             transform_.InitializeEncoding(inData, numComponents);
@@ -38,10 +38,9 @@ namespace FileFormat.Drako.Compression
             // Encode correction for the first element.
             Span<int> zeroVals = stackalloc int[numComponents];
             transform_.ComputeCorrection(inData, zeroVals, outCorr, 0);
-            return true;
         }
 
-        public override bool ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
+        public override void ComputeOriginalValues(Span<int> inCorr, Span<int> outData, int size, int numComponents, int[] entryToPointIdMap)
         {
             transform_.InitializeDecoding(numComponents);
             // Decode the original value for the first element.
@@ -54,7 +53,6 @@ namespace FileFormat.Drako.Compression
                 transform_.ComputeOriginalValue(outData, i - numComponents,
                     inCorr, i, outData, i);
             }
-            return true;
         }
     }
 }

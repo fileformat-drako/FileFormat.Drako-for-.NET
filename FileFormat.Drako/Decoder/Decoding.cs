@@ -6,31 +6,28 @@ using FileFormat.Drako.Utils;
 
 namespace FileFormat.Drako.Decoder
 {
-    sealed class Decoding
+    static class Decoding
     {
 
-        internal static bool DecodeSymbols(int numValues, int numComponents,
+        internal static void DecodeSymbols(int numValues, int numComponents,
             DecoderBuffer srcBuffer, Span<int> outValues)
         {
             if (numValues < 0)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             if (numValues == 0)
-                return true;
+                return;
             // Decode which scheme to use.
-            byte scheme;
-            if (!srcBuffer.Decode(out scheme))
-                return DracoUtils.Failed();
+            byte scheme = srcBuffer.DecodeU8();
             if (scheme == 0)
             {
-                return DecodeTaggedSymbols(numValues, numComponents,
-                    srcBuffer, outValues);
+                DecodeTaggedSymbols(numValues, numComponents, srcBuffer, outValues);
             }
             else if (scheme == 1)
             {
-                return DecodeRawSymbols(numValues, srcBuffer,
-                    outValues);
+                DecodeRawSymbols(numValues, srcBuffer, outValues);
             }
-            return DracoUtils.Failed();
+            else
+                throw DracoUtils.Failed();
         }
 
         static bool DecodeTaggedSymbols(int numValues, int numComponents,
@@ -38,19 +35,16 @@ namespace FileFormat.Drako.Decoder
         {
             // Decode the encoded data.
             RAnsSymbolDecoder tagDecoder = new RAnsSymbolDecoder(5);
-            if (!tagDecoder.Create(srcBuffer))
-                return DracoUtils.Failed();
+            tagDecoder.Create(srcBuffer);
 
-            if (!tagDecoder.StartDecoding(srcBuffer))
-                return DracoUtils.Failed();
+            tagDecoder.StartDecoding(srcBuffer);
 
             if (numValues > 0 && tagDecoder.NumSymbols == 0)
-                return DracoUtils.Failed(); // Wrong number of symbols.
+                throw DracoUtils.Failed(); // Wrong number of symbols.
 
             // srcBuffer now points behind the encoded tag data (to the place where the
             // values are encoded).
-            long tmp;
-            srcBuffer.StartBitDecoding(false, out tmp);
+            long tmp = srcBuffer.StartBitDecoding(false);
             int valueId = 0;
             for (int i = 0; i < numValues; i += numComponents)
             {
@@ -61,7 +55,7 @@ namespace FileFormat.Drako.Decoder
                 {
                     uint val;
                     if (!srcBuffer.DecodeLeastSignificantBits32(bitLength, out val))
-                        return DracoUtils.Failed();
+                        throw DracoUtils.Failed();
                     outValues[valueId++] = (int) val;
                 }
             }
@@ -70,22 +64,18 @@ namespace FileFormat.Drako.Decoder
             return true;
         }
 
-        static bool DecodeRawSymbols(int numValues, DecoderBuffer srcBuffer,
+        static void DecodeRawSymbols(int numValues, DecoderBuffer srcBuffer,
             Span<int> outValues)
         {
-            byte maxBitLength;
-            if (!srcBuffer.Decode(out maxBitLength))
-                return DracoUtils.Failed();
+            byte maxBitLength = srcBuffer.DecodeU8();
 
             RAnsSymbolDecoder decoder = new RAnsSymbolDecoder(maxBitLength);
-            if (!decoder.Create(srcBuffer))
-                return DracoUtils.Failed();
+            decoder.Create(srcBuffer);
 
             if (numValues > 0 && decoder.NumSymbols == 0)
-                return DracoUtils.Failed(); // Wrong number of symbols.
+                throw DracoUtils.Failed(); // Wrong number of symbols.
 
-            if (!decoder.StartDecoding(srcBuffer))
-                return DracoUtils.Failed();
+            decoder.StartDecoding(srcBuffer);
             for (int i = 0; i < numValues; ++i)
             {
                 // Decode a symbol into the value.
@@ -93,7 +83,6 @@ namespace FileFormat.Drako.Decoder
                 outValues[i] = value;
             }
             decoder.EndDecoding();
-            return true;
         }
 
         public static void ConvertSymbolsToSignedInts(Span<int> symbols, Span<int> result)
@@ -117,23 +106,18 @@ namespace FileFormat.Drako.Decoder
         /// <param name="out_val"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public static bool DecodeVarint(out uint out_val, DecoderBuffer buffer)
+        public static uint DecodeVarintU32(this DecoderBuffer buffer)
         {
             // Coding of unsigned values.
             // 0-6 bit - data
             // 7 bit - next byte?
-            byte in_;
-            if (!buffer.Decode(out in_))
-            {
-                out_val = 0;
-                return DracoUtils.Failed();
-            }
+            byte in_ = buffer.DecodeU8();
+            uint out_val;
 
             if ((in_ & (1 << 7)) != 0)
             {
                 // Next byte is available, decode it first.
-                if (!DecodeVarint(out out_val, buffer))
-                    return DracoUtils.Failed();
+                out_val = DecodeVarintU32(buffer);
                 // Append decoded info from this byte.
                 out_val <<= 7;
                 out_val |= (uint)(in_ & ((1 << 7) - 1));
@@ -143,25 +127,20 @@ namespace FileFormat.Drako.Decoder
                 // Last byte reached
                 out_val = in_;
             }
-            return true;
+            return out_val;
         }
-        public static bool DecodeVarint(out ushort out_val, DecoderBuffer buffer)
+        public static ushort DecodeVarintU16(this DecoderBuffer buffer)
         {
             // Coding of unsigned values.
             // 0-6 bit - data
             // 7 bit - next byte?
-            byte in_;
-            if (!buffer.Decode(out in_))
-            {
-                out_val = 0;
-                return DracoUtils.Failed();
-            }
+            byte in_ = buffer.DecodeU8();
+            ushort out_val;
 
             if ((in_ & (1 << 7)) != 0)
             {
                 // Next byte is available, decode it first.
-                if (!DecodeVarint(out out_val, buffer))
-                    return DracoUtils.Failed();
+                out_val = DecodeVarintU16(buffer);
                 // Append decoded info from this byte.
                 out_val <<= 7;
                 out_val |= (ushort)(in_ & ((1 << 7) - 1));
@@ -171,25 +150,21 @@ namespace FileFormat.Drako.Decoder
                 // Last byte reached
                 out_val = in_;
             }
-            return true;
+            return out_val;
         }
-        public static bool DecodeVarint(out ulong out_val, DecoderBuffer buffer)
+        public static ulong DecodeVarintU64(this DecoderBuffer buffer)
         {
             // Coding of unsigned values.
             // 0-6 bit - data
             // 7 bit - next byte?
-            byte in_;
-            if (!buffer.Decode(out in_))
-            {
-                out_val = 0;
-                return DracoUtils.Failed();
-            }
+            byte in_ = buffer.DecodeU8();
+            ulong out_val;
 
             if ((in_ & (1 << 7)) != 0)
             {
                 // Next byte is available, decode it first.
-                if (!DecodeVarint(out out_val, buffer))
-                    return DracoUtils.Failed();
+
+                out_val = DecodeVarintU64(buffer);
                 // Append decoded info from this byte.
                 out_val <<= 7;
                 out_val |= (uint)(in_ & ((1 << 7) - 1));
@@ -199,7 +174,7 @@ namespace FileFormat.Drako.Decoder
                 // Last byte reached
                 out_val = in_;
             }
-            return true;
+            return out_val;
         }
     }
 }

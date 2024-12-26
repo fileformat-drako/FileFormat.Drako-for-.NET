@@ -185,10 +185,16 @@ namespace FileFormat.Drako
             PointCloudDecoder decoder = CreatePointCloudDecoder(header.method);
             if (decoder == null)
                 return null;
-            DracoPointCloud ret = new DracoPointCloud();
-            if (!decoder.Decode(header, buffer, ret, decodeData))
+            try
+            {
+                DracoPointCloud ret = new DracoPointCloud();
+                decoder.Decode(header, buffer, ret, decodeData);
+                return ret;
+            }
+            catch(Exception)
+            {
                 return null;
-            return ret;
+            }
         }
         private static DracoMesh DecodeMesh(DecoderBuffer buffer, DracoHeader header, bool decodeData)
         {
@@ -196,10 +202,16 @@ namespace FileFormat.Drako
             MeshDecoder decoder = CreateMeshDecoder(header.method);
             if (decoder == null)
                 return null;
-            DracoMesh ret = new DracoMesh();
-            if (!decoder.Decode(header, buffer, ret, decodeData))
+            try
+            {
+                DracoMesh ret = new DracoMesh();
+                decoder.Decode(header, buffer, ret, decodeData);
+                return ret;
+            }
+            catch(Exception)
+            {
                 return null;
-            return ret;
+            }
         }
 
         public MeshAttributeElementType GetAttributeElementType(int attId)

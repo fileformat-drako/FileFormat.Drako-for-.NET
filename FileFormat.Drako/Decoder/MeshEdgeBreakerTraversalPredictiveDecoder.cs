@@ -33,20 +33,16 @@ namespace FileFormat.Drako.Decoder
             num_vertices_ = num_vertices;
         }
 
-        public override bool Start(out DecoderBuffer out_buffer)
+        public override DecoderBuffer Start()
         {
-            if (!base.Start(out out_buffer))
-                return DracoUtils.Failed();
-            int num_split_symbols;
-            if (!out_buffer.Decode(out num_split_symbols))
-                return DracoUtils.Failed();
+            var out_buffer = base.Start();
+            int num_split_symbols = out_buffer.DecodeI32();
             // Add one vertex for each split symbol.
             num_vertices_ += num_split_symbols;
             // Set the valences of all initial vertices to 0.
             Array.Resize(ref vertex_valences_, num_vertices_);
-            if (!prediction_decoder_.StartDecoding(out_buffer))
-                return DracoUtils.Failed();
-            return true;
+            prediction_decoder_.StartDecoding(out_buffer);
+            return out_buffer;
         }
 
         public override EdgeBreakerTopologyBitPattern DecodeSymbol()

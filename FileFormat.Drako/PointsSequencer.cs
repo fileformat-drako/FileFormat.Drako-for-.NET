@@ -19,12 +19,11 @@ namespace FileFormat.Drako
         /// <summary>
         /// Fills the |outPointIds| with the generated sequence of point ids.
         /// </summary>
-        public bool GenerateSequence(out int[] outPointIds)
+        public int[] GenerateSequence()
         {
             this.outPointIds.Clear();
-            bool ret = GenerateSequenceInternal();
-            outPointIds = this.outPointIds.ToArray();
-            return ret;
+            GenerateSequenceInternal();
+            return this.outPointIds.ToArray();
         }
 
         /// <summary>
@@ -42,9 +41,9 @@ namespace FileFormat.Drako
         /// ids are necessarily contained within the map.
         /// Must be implemented for sequencers that are used by attribute decoders.
         /// </summary>
-        public virtual bool UpdatePointToAttributeIndexMapping(PointAttribute attr)
+        public virtual void UpdatePointToAttributeIndexMapping(PointAttribute attr)
         {
-            return DracoUtils.Failed();
+            throw DracoUtils.Failed();
         }
 
         /// <summary>
@@ -52,6 +51,6 @@ namespace FileFormat.Drako
         /// implementation is responsible for filling |outPointIds| with the valid
         /// sequence of point ids.
         /// </summary>
-        protected abstract bool GenerateSequenceInternal();
+        protected abstract void GenerateSequenceInternal();
     }
 }

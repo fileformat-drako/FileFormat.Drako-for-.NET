@@ -139,11 +139,11 @@ namespace FileFormat.Drako.Encoder
             return table_bits + data_bits;
         }
 
-        public static bool EncodeSymbols(Span<int> symbols, int numValues, int numComponents, DracoEncodeOptions options,
+        public static void EncodeSymbols(Span<int> symbols, int numValues, int numComponents, DracoEncodeOptions options,
             EncoderBuffer targetBuffer)
         {
             if (symbols.Length == 0)
-                return true;
+                return ;
             if (numComponents == 0)
                 numComponents = 1;
             int maxValue;
@@ -186,19 +186,18 @@ namespace FileFormat.Drako.Encoder
             targetBuffer.Encode((byte) method);
             if (method == Tagged)
             {
-                return EncodeTaggedSymbols(
+                EncodeTaggedSymbols(
                     symbols, /*numValues, */numComponents, bitLengths, targetBuffer);
             }
-
-            if (method == Raw)
+            else if (method == Raw)
             {
-                return EncodeRawSymbols(symbols, numValues, (uint)maxValue,
+                EncodeRawSymbols(symbols, numValues, (uint)maxValue,
                     num_unique_symbols, options,
                     targetBuffer);
             }
-
-            // Unknown method selected.
-            return false;
+            else
+                // Unknown method selected.
+                throw DracoUtils.Failed();
         }
 
         static bool EncodeTaggedSymbols(Span<int> symbols, int numComponents, int[] bitLengths,

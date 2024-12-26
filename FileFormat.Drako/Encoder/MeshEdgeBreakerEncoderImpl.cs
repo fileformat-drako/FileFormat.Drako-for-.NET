@@ -136,7 +136,7 @@ namespace FileFormat.Drako.Encoder
         /// Initializes data needed for encoding non-position attributes.
         /// Returns false on error.
         /// </summary>
-        public bool InitAttributeData()
+        public void InitAttributeData()
         {
 
             int numAttributes = mesh.NumAttributes;
@@ -147,7 +147,7 @@ namespace FileFormat.Drako.Encoder
                 attributeData[i] = new AttributeData();
             }
             if (numAttributes == 1)
-                return true;
+                return;
             int dataIndex = 0;
             for (int i = 0; i < numAttributes; ++i)
             {
@@ -169,7 +169,6 @@ namespace FileFormat.Drako.Encoder
                 attributeData[dataIndex].connectivityData = new MeshAttributeCornerTable(mesh, cornerTable, att);
                 ++dataIndex;
             }
-            return true;
         }
 
         private void Assign(IntList list, int size, int val)
@@ -244,7 +243,7 @@ namespace FileFormat.Drako.Encoder
         /// <summary>
         /// Encodes the connectivity between vertices.
         /// </summary>
-        public bool EncodeConnectivityFromCorner(int cornerId)
+        public void EncodeConnectivityFromCorner(int cornerId)
         {
 
             cornerTraversalStack.Clear();
@@ -370,7 +369,7 @@ namespace FileFormat.Drako.Encoder
                     }
                 }
             }
-            return true; // All corners have been processed.
+            // All corners have been processed.
         }
 
         /// <summary>
@@ -564,7 +563,7 @@ namespace FileFormat.Drako.Encoder
         /// <summary>
         /// Encodes connectivity of all attributes on a newly traversed face.
         /// </summary>
-        public bool EncodeAttributeConnectivitiesOnFace(int corner)
+        public void EncodeAttributeConnectivitiesOnFace(int corner)
         {
 
             // Three corners of the face.
@@ -600,7 +599,6 @@ namespace FileFormat.Drako.Encoder
                     }
                 }
             }
-            return true;
         }
 
         /// <summary>
@@ -621,13 +619,12 @@ namespace FileFormat.Drako.Encoder
             this.traversalEncoder = encoder;
         }
 
-        public bool Init(MeshEdgeBreakerEncoder encoder)
+        public void Init(MeshEdgeBreakerEncoder encoder)
         {
 
             this.encoder = encoder;
             mesh = encoder.Mesh;
             attributeEncoderToDataIdMap.Clear();
-            return true;
         }
 
         public MeshAttributeCornerTable GetAttributeCornerTable(int attId)
@@ -655,7 +652,7 @@ namespace FileFormat.Drako.Encoder
             return posEncodingData;
         }
 
-        public bool GenerateAttributesEncoder(int attId)
+        public void GenerateAttributesEncoder(int attId)
         {
 
             // For now, create one encoder for each attribute. Ideally we can share
@@ -749,7 +746,7 @@ namespace FileFormat.Drako.Encoder
             }
 
             if (sequencer == null)
-                return false;
+                throw DracoUtils.Failed();
 
             if (attDataId == -1)
                 posTraversalMethod = traversalMethod;
@@ -764,10 +761,9 @@ namespace FileFormat.Drako.Encoder
             // decoder and the correct connectivity.
             attributeEncoderToDataIdMap.Add(attDataId);
             Encoder.AddAttributesEncoder(attController);
-            return true;
         }
 
-        public bool EncodeAttributesEncoderIdentifier(int attEncoderId)
+        public void EncodeAttributesEncoderIdentifier(int attEncoderId)
         {
 
             int attDataId = attributeEncoderToDataIdMap[attEncoderId];
@@ -798,8 +794,7 @@ namespace FileFormat.Drako.Encoder
                 // Per-corner encoder.
                 encoder.Buffer.Encode((byte) (MeshAttributeElementType.Corner));
             }
-                encoder.Buffer.Encode((byte) traversalMethod);
-            return true;
+            encoder.Buffer.Encode((byte) traversalMethod);
         }
 
         private CornerTable CreateCornerTableFromPositionAttribute(DracoMesh mesh)
@@ -845,7 +840,7 @@ namespace FileFormat.Drako.Encoder
             return ret;
         }
 
-        public bool EncodeConnectivity()
+        public void EncodeConnectivity()
         {
 
             // To encode the mesh, we need face connectivity data stored in a corner
@@ -860,7 +855,7 @@ namespace FileFormat.Drako.Encoder
             if (cornerTable == null || cornerTable.NumFaces == cornerTable.NumDegeneratedFaces)
             {
                 // Failed to ruct the corner table.
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             }
 
             traversalEncoder.Init(this);
@@ -900,10 +895,9 @@ namespace FileFormat.Drako.Encoder
             posEncodingData.numValues = 0;
 
             if (!FindHoles())
-                return false;
+                throw DracoUtils.Failed();
 
-            if (!InitAttributeData())
-                return false;
+            InitAttributeData();
 
             byte numAttributeData = (byte) attributeData.Length;
             encoder.Buffer.Encode(numAttributeData);
@@ -959,8 +953,7 @@ namespace FileFormat.Drako.Encoder
                     if (oppFaceId != -1 &&
                         !visitedFaces[oppFaceId])
                     {
-                        if (!EncodeConnectivityFromCorner(oppId))
-                            return false;
+                        EncodeConnectivityFromCorner(oppId);
                     }
                 }
                 else
@@ -970,8 +963,7 @@ namespace FileFormat.Drako.Encoder
                     EncodeHole(cornerTable.Next(startCorner), true);
                     // Start processing the face opposite to the boundary edge (the face
                     // containing the startCorner).
-                    if (!EncodeConnectivityFromCorner(startCorner))
-                        return false;
+                    EncodeConnectivityFromCorner(startCorner);
                 }
             }
             // Reverse the order of connectivity corners to match the order in which
@@ -1002,15 +994,12 @@ namespace FileFormat.Drako.Encoder
 
             // Append the traversal buffer.
 
-            if (!EncodeSplitData())
-                return DracoUtils.Failed();
-
+            EncodeSplitData();
 
             encoder.Buffer.Encode(traversalEncoder.Buffer.Data, traversalEncoder.Buffer.Bytes);
-            return true;
         }
 
-        bool EncodeSplitData()
+        void EncodeSplitData()
         {
             int numEvents = topologySplitEventData.Count;
             Encoding.EncodeVarint((uint)numEvents, encoder.Buffer);
@@ -1043,7 +1032,6 @@ namespace FileFormat.Drako.Encoder
                 encoder.Buffer.EndBitEncoding();
             }
 
-            return true;
         }
 
         public CornerTable CornerTable

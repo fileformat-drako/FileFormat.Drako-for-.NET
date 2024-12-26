@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FileFormat.Drako.Utils;
 
 namespace FileFormat.Drako.Decoder
 {
@@ -20,27 +21,24 @@ namespace FileFormat.Drako.Decoder
         }
 
         // Sets |source_buffer| as the buffer to decode bits from.
-        public bool StartDecoding(DecoderBuffer source_buffer)
+        public void StartDecoding(DecoderBuffer source_buffer)
         {
 
             Clear();
-            int size_in_bytes;
-            if (!source_buffer.Decode(out size_in_bytes))
-                return false;
+            int size_in_bytes = source_buffer.DecodeI32();
 
             // Check that size_in_bytes is > 0 and a multiple of 4 as the encoder always
             // encodes 32 bit elements.
             if (size_in_bytes == 0 || (size_in_bytes & 0x3) != 0)
-                return false;
+                throw DracoUtils.Failed();
             if (size_in_bytes > source_buffer.RemainingSize)
-                return false;
+                throw DracoUtils.Failed();
             int num_32bit_elements = size_in_bytes / 4;
             bits_ = new uint[num_32bit_elements];
             if (!source_buffer.Decode(bits_))
-                return false;
+                throw DracoUtils.Failed();
             pos_ = 0;
             num_used_bits_ = 0;
-            return true;
         }
 
         // Decode one bit. Returns true if the bit is a 1, otherwise false.

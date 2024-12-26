@@ -24,41 +24,36 @@ namespace FileFormat.Drako.Decoder
             ans= new RAnsDecoder(ransPrecisionBits);
         }
 
-        public bool Create(DecoderBuffer buffer)
+        public void Create(DecoderBuffer buffer)
         {
             if (buffer.BitstreamVersion == 0)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             // Decode the number of alphabet symbols.
             if (buffer.BitstreamVersion < 20)
             {
-                if (!buffer.Decode(out numSymbols))
-                    return DracoUtils.Failed();
+                numSymbols = buffer.DecodeI32();
             }
             else
             {
-                uint n;
-                if (!Decoding.DecodeVarint(out n, buffer))
-                    return DracoUtils.Failed();
+                uint n = Decoding.DecodeVarintU32(buffer);
                 numSymbols = (int)n;
             }
             probabilityTable = new uint[numSymbols];
             if (numSymbols == 0)
-                return true;
+                return;
             // Decode the table.
             for (int i = 0; i < numSymbols; ++i)
             {
                 uint prob = 0;
-                byte byteProb = 0;
                 // Decode the first byte and extract the number of extra bytes we need to
                 // get.
-                if (!buffer.Decode(out byteProb))
-                    return DracoUtils.Failed();
+                byte byteProb = buffer.DecodeU8();
                 int token = byteProb & 3;
                 if (token == 3)
                 {
                     var offset = byteProb >> 2;
                     if (i + offset >= numSymbols)
-                        return DracoUtils.Failed();
+                        throw DracoUtils.Failed();
                     // Set zero probability for all symbols in the specified range.
                     for (int j = 0; j < offset + 1; ++j)
                     {
@@ -73,9 +68,7 @@ namespace FileFormat.Drako.Decoder
                     prob = (uint) (byteProb >> 2);
                     for (int b = 0; b < extraBytes; ++b)
                     {
-                        byte eb;
-                        if (!buffer.Decode(out eb))
-                            return DracoUtils.Failed();
+                        byte eb = buffer.DecodeU8();
                         // Shift 8 bits for each extra byte and subtract 2 for the two first bits.
                         prob |= (uint) (eb) << (8 * (b + 1) - 2);
                     }
@@ -83,35 +76,30 @@ namespace FileFormat.Drako.Decoder
                 probabilityTable[i] = prob;
             }
             if (!ans.BuildLookupTable(probabilityTable, numSymbols))
-                return DracoUtils.Failed();
-            return true;
+                throw DracoUtils.Failed();
         }
 
-        public bool StartDecoding( DecoderBuffer buffer)
+        public void StartDecoding( DecoderBuffer buffer)
         {
             long bytesEncoded;
             // Decode the number of bytes encoded by the encoder.
             if (buffer.BitstreamVersion < 20)
             {
-                if (!buffer.Decode(out bytesEncoded))
-                    return DracoUtils.Failed();
+                bytesEncoded = buffer.DecodeI64();
             }
             else
             {
-                ulong n;
-                if (!Decoding.DecodeVarint(out n, buffer))
-                    return DracoUtils.Failed();
+                ulong n = Decoding.DecodeVarintU64(buffer);
                 bytesEncoded = (long)n;
             }
 
             if (bytesEncoded > buffer.RemainingSize)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             BytePointer dataHead = buffer.Pointer + buffer.DecodedSize;
             // Advance the buffer past the rANS data.
             buffer.Advance((int)bytesEncoded);
             if (ans.readInit(dataHead, (int)bytesEncoded) != 0)
-                return DracoUtils.Failed();
-            return true;
+                throw DracoUtils.Failed();
         }
 
         public int NumSymbols

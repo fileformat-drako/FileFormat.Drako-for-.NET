@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FileFormat.Drako.Utils;
 
 namespace FileFormat.Drako.Encoder
 {
@@ -30,20 +31,16 @@ namespace FileFormat.Drako.Encoder
             this.attId = attId;
         }
 
-        public override bool Initialize(PointCloudEncoder encoder, DracoPointCloud pc)
+        public override void Initialize(PointCloudEncoder encoder, DracoPointCloud pc)
         {
-            if (!base.Initialize(encoder, pc))
-                return false;
-            if (!CreateSequentialEncoders())
-                return false;
+            base.Initialize(encoder, pc);
+            CreateSequentialEncoders();
             // Initialize all value encoders.
             for (int i = 0; i < NumAttributes; ++i)
             {
                 int attId = GetAttributeId(i);
-                if (!sequentialEncoders[i].Initialize(encoder, attId))
-                    return false;
+                sequentialEncoders[i].Initialize(encoder, attId);
             }
-            return true;
         }
 
         public override bool MarkParentAttribute(int pointAttributeId)
@@ -59,16 +56,15 @@ namespace FileFormat.Drako.Encoder
         /// Creates all sequential encoders (one for each attribute associated with the
         /// encoder).
         /// </summary>
-        protected virtual bool CreateSequentialEncoders()
+        protected virtual void CreateSequentialEncoders()
         {
             sequentialEncoders = new SequentialAttributeEncoder[NumAttributes];
             for (int i = 0; i < NumAttributes; ++i)
             {
                 sequentialEncoders[i] = CreateSequentialEncoder(i);
                 if (sequentialEncoders[i] == null)
-                    return false;
+                    throw DracoUtils.Failed();
             }
-            return true;
         }
 
         /// <summary>
@@ -132,54 +128,47 @@ namespace FileFormat.Drako.Encoder
             return new SequentialAttributeEncoder();
         }
 
-        public override bool EncodeAttributesEncoderData(EncoderBuffer outBuffer)
+        public override void EncodeAttributesEncoderData(EncoderBuffer outBuffer)
         {
-            if (!base.EncodeAttributesEncoderData(outBuffer))
-                return false;
+            base.EncodeAttributesEncoderData(outBuffer);
             // Encode a unique id of every sequential encoder.
             for (int i = 0; i < sequentialEncoders.Length; ++i)
             {
                 outBuffer.Encode((byte)sequentialEncoders[i].GetUniqueId());
             }
-            return true;
         }
 
-        public override bool EncodeAttributes(EncoderBuffer outBuffer)
+        public override void EncodeAttributes(EncoderBuffer outBuffer)
         {
-            if (sequencer == null || !sequencer.GenerateSequence(out pointIds))
-                return false;
-            return base.EncodeAttributes(outBuffer);
+            if (sequencer == null)
+                throw DracoUtils.Failed();
+            pointIds = sequencer.GenerateSequence();
+            base.EncodeAttributes(outBuffer);
         }
 
-        protected override bool TransformAttributesToPortableFormat()
-        {
-            for (int i = 0; i < sequentialEncoders.Length; ++i)
-            {
-                if (!sequentialEncoders[i].TransformAttributeToPortableFormat(pointIds))
-                    return false;
-            }
-            return true;
-        }
-
-        protected override bool EncodePortableAttributes(EncoderBuffer out_buffer)
+        protected override void TransformAttributesToPortableFormat()
         {
             for (int i = 0; i < sequentialEncoders.Length; ++i)
             {
-                if (!sequentialEncoders[i].EncodePortableAttribute(pointIds, out_buffer))
-                    return false;
+                sequentialEncoders[i].TransformAttributeToPortableFormat(pointIds);
             }
-            return true;
         }
 
-        protected override bool EncodeDataNeededByPortableTransforms(EncoderBuffer out_buffer)
+        protected override void EncodePortableAttributes(EncoderBuffer out_buffer)
         {
             for (int i = 0; i < sequentialEncoders.Length; ++i)
             {
-                if (!sequentialEncoders[i].EncodeDataNeededByPortableTransform(
-                    out_buffer))
-                    return false;
+                sequentialEncoders[i].EncodePortableAttribute(pointIds, out_buffer);
             }
-            return true;
+        }
+
+        protected override void EncodeDataNeededByPortableTransforms(EncoderBuffer out_buffer)
+        {
+            for (int i = 0; i < sequentialEncoders.Length; ++i)
+            {
+                sequentialEncoders[i].EncodeDataNeededByPortableTransform(
+                    out_buffer);
+            }
         }
 
         public override PointAttribute GetPortableAttribute(int parentAttId)

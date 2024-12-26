@@ -51,17 +51,12 @@ namespace FileFormat.Drako.Decoder
             this.numAttributeData = numData;
         }
 
-        public virtual bool Start(out DecoderBuffer outBuffer)
+        public virtual DecoderBuffer Start()
         {
-            outBuffer = null;
-            if (!DecodeTraversalSymbols())
-                return false;
-            if (!DecodeStartFaces())
-                return false;
-            if (!DecodeAttributeSeams())
-                return false;
-            outBuffer = buffer;
-            return true;
+            DecodeTraversalSymbols();
+            DecodeStartFaces();
+            DecodeAttributeSeams();
+            return buffer;
         }
 
 
@@ -118,38 +113,34 @@ namespace FileFormat.Drako.Decoder
             }
         }
 
-        protected bool DecodeTraversalSymbols()
+        protected void DecodeTraversalSymbols()
         {
             long traversalSize;
             symbol_buffer_ = buffer.Clone();
-            if (!symbol_buffer_.StartBitDecoding(true, out traversalSize))
-                return DracoUtils.Failed();
+            traversalSize = symbol_buffer_.StartBitDecoding(true);
             buffer = symbol_buffer_.Clone();
             if (traversalSize > buffer.RemainingSize)
-                return DracoUtils.Failed();
+                throw DracoUtils.Failed();
             buffer.Advance((int)traversalSize);
-            return true;
         }
 
-        protected bool DecodeStartFaces()
+        protected void DecodeStartFaces()
         {
             // Create a decoder that is set to the end of the encoded traversal data.
             if (BitstreamVersion  < 22)
             {
                 startFaceBuffer = buffer.Clone();
-                long traversalSize;
-                if (!startFaceBuffer.StartBitDecoding(true, out traversalSize))
-                    return DracoUtils.Failed();
+                long traversalSize = startFaceBuffer.StartBitDecoding(true);
                 buffer = startFaceBuffer.Clone();
                 if (traversalSize > buffer.RemainingSize)
-                    return DracoUtils.Failed();
+                    throw DracoUtils.Failed();
                 buffer.Advance((int)traversalSize);
-                return true;
+                return;
             }
-            return startFaceDecoder.StartDecoding(buffer);
+            startFaceDecoder.StartDecoding(buffer);
         }
 
-        protected bool DecodeAttributeSeams()
+        protected void DecodeAttributeSeams()
         {
             // Prepare attribute decoding.
             if (numAttributeData > 0)
@@ -158,12 +149,10 @@ namespace FileFormat.Drako.Decoder
                 for (int i = 0; i < numAttributeData; ++i)
                 {
                     attributeConnectivityDecoders[i] = new RAnsBitDecoder();
-                    if (!attributeConnectivityDecoders[i].StartDecoding(buffer))
-                        return DracoUtils.Failed();
+                    attributeConnectivityDecoders[i].StartDecoding(buffer);
                 }
             }
 
-            return true;
         }
     }
 

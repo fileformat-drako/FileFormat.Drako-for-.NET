@@ -33,7 +33,7 @@ namespace FileFormat.Drako.Encoder
             return (byte)AttributeEncoderType.KdTree;
         }
 
-        protected override bool TransformAttributesToPortableFormat()
+        protected override void TransformAttributesToPortableFormat()
         {
             // Convert any of the input attributes into a format that can be processed by
             // the kd tree encoder (quantization of floating attributes for now).
@@ -60,7 +60,7 @@ namespace FileFormat.Drako.Encoder
                         new AttributeQuantizationTransform();
                     int quantization_bits = Encoder.Options.GetQuantizationBits(att);
                     if (quantization_bits < 1)
-                        return false;
+                        throw DracoUtils.Failed();
                     /*
                     if (Encoder.Options().IsAttributeOptionSet(att_id,
                             "quantization_origin") &&
@@ -120,10 +120,9 @@ namespace FileFormat.Drako.Encoder
                 }
             }
 
-            return true;
         }
 
-        protected override bool EncodePortableAttributes(EncoderBuffer out_buffer)
+        protected override void EncodePortableAttributes(EncoderBuffer out_buffer)
         {
 
             // Encode the data using the kd tree encoder algorithm. The data is first
@@ -176,11 +175,11 @@ namespace FileFormat.Drako.Encoder
                 else
                 {
                     // Unsupported data type.
-                    return false;
+                    throw DracoUtils.Failed();
                 }
 
                 if (source_att == null)
-                    return false;
+                    throw DracoUtils.Failed();
 
                 // Copy source_att to the vector.
                 if (source_att.DataType == DataType.UINT32)
@@ -254,12 +253,10 @@ namespace FileFormat.Drako.Encoder
             }
 
             var points_encoder = new DynamicIntegerPointsKdTreeEncoder(compression_level, num_components_);
-            if (!points_encoder.EncodePoints(point_vector, num_bits, out_buffer))
-                return false;
-            return true;
+            points_encoder.EncodePoints(point_vector, num_bits, out_buffer);
         }
 
-        protected override bool EncodeDataNeededByPortableTransforms(EncoderBuffer out_buffer)
+        protected override void EncodeDataNeededByPortableTransforms(EncoderBuffer out_buffer)
         {
             // Store quantization settings for all attributes that need it.
             for (int i = 0; i < attribute_quantization_transforms_.Count; ++i)
@@ -273,7 +270,6 @@ namespace FileFormat.Drako.Encoder
                 Encoding.EncodeVarint(min_signed_values_[i], out_buffer);
             }
 
-            return true;
         }
 
         // Copy data directly off of an attribute buffer interleaved into internal

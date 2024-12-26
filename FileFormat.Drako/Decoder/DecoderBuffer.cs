@@ -94,27 +94,24 @@ namespace FileFormat.Drako.Decoder
             pos += bytes;
         }
 
-        public bool StartBitDecoding(bool decodeSize, out long outSize)
+        public long StartBitDecoding(bool decodeSize)
         {
-            outSize = 0;
+            long outSize = 0;
             if (decodeSize)
             {
                 if (BitstreamVersion < 22)
                 {
-                    if (!Decode(out outSize))
-                        return false;
+                    outSize = DecodeI64();
                 }
                 else
                 {
-                    ulong n;
-                    if (!Decoding.DecodeVarint(out n, this))
-                        return false;
+                    ulong n = Decoding.DecodeVarintU64(this);
                     outSize = (long)n;
                 }
             }
             bitMode = true;
             bitDecoder.Load(data + pos, length - pos);
-            return true;
+            return outSize;
         }
 
         public void EndBitDecoding()
@@ -171,90 +168,52 @@ namespace FileFormat.Drako.Decoder
             return true;
         }
 
-        public bool Decode(out float val)
+        public float DecodeF32()
         {
             if (!Decode(tmp, 4))
-            {
-                val = 0;
-                return false;
-            }
-            val = BitConverter.ToSingle(tmp, 0);
-            return true;
+                throw DracoUtils.Failed();
+            return BitConverter.ToSingle(tmp, 0);
         }
-        public bool Decode(out sbyte val)
+        public sbyte DecodeI8()
         {
-            byte tmp;
-            if (Decode(out tmp))
-            {
-                val = (sbyte) tmp;
-                return true;
-            }
-            val = 0;
-            return false;
+            return (sbyte)DecodeU8();
         }
-        public bool Decode(out byte val)
+        public byte DecodeU8()
         {
             if (!RemainingIsEnough(1))
-            {
-                val = 0;
-                return false;
-            }
-            else
-            {
-                val = this.data[pos];
-                pos++;
-                return true;
-            }
+                throw DracoUtils.Failed();
+            var val = this.data[pos];
+            pos++;
+            return val;
         }
-        public bool Decode(out ushort val)
+        public ushort DecodeU16()
         {
             if (!RemainingIsEnough(2))
-            {
-                val = 0;
-                return false;
-            }
-            else
-            {
-                val = (ushort)data.ToUInt16LE(pos);
-                pos += 2;
-                return true;
-            }
+                throw DracoUtils.Failed();
+            var val = data.ToUInt16LE(pos);
+            pos += 2;
+            return val;
         }
-        public bool Decode(out long val)
+        public long DecodeI64()
         {
             if (!RemainingIsEnough(8))
-            {
-                val = 0;
-                return false;
-            }
-            else
-            {
-                val = (long) data.ToUInt64LE(pos);
-                pos += 8;
-                return true;
-            }
+                throw DracoUtils.Failed();
+            var val = (long)data.ToUInt64LE(pos);
+            pos += 8;
+            return val;
         }
 
-        public bool Decode(out uint val)
+        public uint DecodeU32()
         {
-            int v;
-            bool ret = Decode(out v);
-            val = (uint) v;
-            return ret;
+            return (uint)DecodeI32();
         }
-        public bool Decode(out int val)
+        public int DecodeI32()
         {
             if (!RemainingIsEnough(4))
-            {
-                val = 0;
-                return false;
-            }
-            else
-            {
-                val = (int) data.ToUInt32LE(pos);
-                pos += 4;
-                return true;
-            }
+                throw DracoUtils.Failed();
+            var val = (int)data.ToUInt32LE(pos);
+            pos += 4;
+            return val;
         }
 
         private bool RemainingIsEnough(int size)

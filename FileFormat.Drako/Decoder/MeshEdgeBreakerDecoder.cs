@@ -29,12 +29,10 @@ namespace FileFormat.Drako.Decoder
             return impl.GetAttributeEncodingData(attId);
         }
 
-        protected override bool InitializeDecoder()
+        protected override void InitializeDecoder()
         {
 
-            byte traversalDecoderType;
-            if (!buffer.Decode(out traversalDecoderType))
-                return DracoUtils.Failed();
+            byte traversalDecoderType = buffer.DecodeU8();
             impl = null;
             if (traversalDecoderType == 0)
             {
@@ -47,23 +45,22 @@ namespace FileFormat.Drako.Decoder
             else if(traversalDecoderType == 2)
                 impl = new MeshEdgeBreakerDecoderImpl(this, new MeshEdgeBreakerTraversalValenceDecoder());
             else
-                return DracoUtils.Failed();
-            return true;
+                throw DracoUtils.Failed();
         }
 
-        protected override bool CreateAttributesDecoder(int attDecoderId)
+        protected override void CreateAttributesDecoder(int attDecoderId)
         {
-          return impl.CreateAttributesDecoder(attDecoderId);
+          impl.CreateAttributesDecoder(attDecoderId);
         }
 
-        protected override bool DecodeConnectivity()
+        protected override void DecodeConnectivity()
         {
-          return impl.DecodeConnectivity();
+          impl.DecodeConnectivity();
         }
 
-        protected override bool OnAttributesDecoded()
+        protected override void OnAttributesDecoded()
         {
-          return impl.OnAttributesDecoded();
+          impl.OnAttributesDecoded();
         }
     }
 }

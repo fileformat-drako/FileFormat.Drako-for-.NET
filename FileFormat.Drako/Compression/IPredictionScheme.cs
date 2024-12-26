@@ -42,9 +42,9 @@ namespace FileFormat.Drako.Compression
 
 
       // Sets the required parent attribute.
-        public virtual bool SetParentAttribute(PointAttribute att)
+        public virtual void SetParentAttribute(PointAttribute att)
         {
-            return false;
+            throw DracoUtils.Failed();
         }
 
         public virtual bool AreCorrectionsPositive()
@@ -59,27 +59,23 @@ namespace FileFormat.Drako.Compression
         public abstract PredictionSchemeMethod PredictionMethod { get; }
 
 
-        public virtual bool EncodePredictionData(EncoderBuffer buffer)
+        public virtual void EncodePredictionData(EncoderBuffer buffer)
         {
-            if (!transform_.EncodeTransformData(buffer))
-                return false;
-            return true;
+            transform_.EncodeTransformData(buffer);
         }
 
         // Method that can be used to decode any prediction scheme specific data
         // from the input buffer.
-        public virtual bool DecodePredictionData(DecoderBuffer buffer)
+        public virtual void DecodePredictionData(DecoderBuffer buffer)
         {
-            if (!transform_.DecodeTransformData(buffer))
-                return false;
-            return true;
+            transform_.DecodeTransformData(buffer);
         }
 
-        public abstract bool ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components,
+        public abstract void ComputeCorrectionValues(Span<int> in_data, Span<int> out_corr, int size, int num_components,
             int[] entry_to_point_id_map);
 
         // Reverts changes made by the prediction scheme during encoding.
-        public abstract bool ComputeOriginalValues(Span<int> in_corr, Span<int> out_data, int size, int num_components,
+        public abstract void ComputeOriginalValues(Span<int> in_corr, Span<int> out_data, int size, int num_components,
             int[] entry_to_point_id_map);
 
     }
