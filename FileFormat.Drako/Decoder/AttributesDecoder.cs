@@ -79,10 +79,10 @@ namespace FileFormat.Drako.Decoder
                     customId = inBuffer.DecodeVarintU16();
                 }
 
-                ga.UniqueId = customId;
 
 
                 int attId = pc.AddAttribute(ga);
+                ga.UniqueId = customId;
                 pointAttributeIds[i] = attId;
 
                 // Update the inverse map.
