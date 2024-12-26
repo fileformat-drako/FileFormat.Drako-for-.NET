@@ -77,8 +77,13 @@ namespace FileFormat.Drako.Compression
         {
             if (method == PredictionSchemeMethod.None)
                 return null;
+            PredictionScheme ret = null;
             if (source.GeometryType == EncodedGeometryType.TriangularMesh)
-                return CreateMeshPredictionScheme((MeshDecoder) source, method, attId, transform);
+            {
+                ret = CreateMeshPredictionScheme((MeshDecoder)source, method, attId, transform);
+            }
+            if (ret != null)
+                return ret;
             // Create delta decoder.
             PointAttribute att = source.PointCloud.Attribute(attId);
             return new PredictionSchemeDeltaDecoder(att, transform);
