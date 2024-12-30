@@ -196,7 +196,7 @@ namespace FileFormat.Drako
         {
 
             if (numPoints == 0)
-                throw DracoUtils.Failed(); // Unexcpected attribute size.
+                return; // Unexcpected attribute size.
             // Deduplicate all attributes.
             for (int i = 0; i < attributes.Count; i++)
             {

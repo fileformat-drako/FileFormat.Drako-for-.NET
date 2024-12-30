@@ -118,7 +118,7 @@ namespace FileFormat.Drako
 
         private static PointCloudEncoder CreateEncoder(DracoPointCloud pc, DracoEncodeOptions options)
         {
-            if (pc is DracoMesh)
+            if (pc is DracoMesh && ((DracoMesh)pc).NumFaces > 0)
             {
                 MeshEncoder encoder;
                 if (options.CompressionLevel == DracoCompressionLevel.NoCompression)

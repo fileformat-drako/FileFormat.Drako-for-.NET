@@ -128,6 +128,7 @@ namespace FileFormat.Drako.Decoder
                     min_signed_values_[i] = (int)val;
                 }
 
+                return;
             }
 #if DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   // Handle old bitstream

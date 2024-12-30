@@ -43,9 +43,9 @@ namespace FileFormat.Drako.Encoder
         /// <summary>
         /// The main entry point that encodes provided point cloud.
         /// </summary>
+        /// <exception cref="DrakoException">Raised when failed to encode the point cloud.</exception>
         public void Encode(DracoEncodeOptions options, EncoderBuffer outBuffer)
         {
-
             this.options = options;
             buffer = outBuffer;
 
@@ -199,6 +199,7 @@ namespace FileFormat.Drako.Encoder
         /// point attribute data. Calls GenerateAttributesEncoder() for every attribute
         /// of the encoded PointCloud.
         /// </summary>
+        /// <exception cref="DrakoException">throws when failed to generate encoders</exception>
         protected virtual void GenerateAttributesEncoders()
         {
 
